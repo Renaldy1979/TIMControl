@@ -12,7 +12,7 @@
 
 **Precisa do dono:** criar os serviços no EasyPanel e configurar o Appwrite (passo a passo no `docs/09-deploy.md`).
 
-## Lote 2 — Kanban essencial
+## Lote 2 — Kanban essencial ✅ validado em 19/11/2026
 **Você testa:** criar um card para o grupo Accenture, arrastar cards entre as colunas (no computador e no celular), conferir "Minhas atividades" e "Pedi a outros", filtrar atrasados e ver o histórico do card. Roteiro: `docs/lotes/L2-roteiro.md`.
 - Cards sempre para alguém: um ou mais responsáveis (pessoas e grupos), prazo, prioridade, etiquetas e referência externa.
 - Quadro por projeto e visão geral, com arrastar e soltar (mouse, toque e teclado) e "Mover para" na tela do card.
