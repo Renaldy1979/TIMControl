@@ -92,3 +92,23 @@ export function can(v: Viewer, key: PermissionKey, opts: { projectId?: string; o
   if (s === "own") return opts.own === true;
   return false;
 }
+
+export interface CardRights {
+  edit: boolean;
+  move: boolean;
+  delete: boolean;
+  comment: boolean;
+  /** Mexer nos responsáveis e etiquetas (= app_card_editable no SQL). */
+  editStructure: boolean;
+  /** Checklist e anexos (= app_card_workable no SQL): quem edita o card ou pode movê-lo. */
+  work: boolean;
+}
+
+/** O que a pessoa pode fazer num card. Mesma regra de app_card_editable / app_card_workable (drizzle/0005 e 0009). */
+export function cardRights(v: Viewer, card: { projectId: string; createdBy: string }, own: boolean): CardRights {
+  const opts = { projectId: card.projectId, own };
+  const edit = can(v, "kanban.edit", opts);
+  const move = can(v, "kanban.move", opts);
+  const editStructure = edit || (card.createdBy === v.userId && can(v, "kanban.create", { projectId: card.projectId }));
+  return { edit, move, delete: can(v, "kanban.delete", opts), comment: can(v, "kanban.comment", opts), editStructure, work: editStructure || move };
+}

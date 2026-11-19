@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/server/cookies";
 
 /** Telas e rotas que não exigem sessão. Tudo o mais pede o cookie da sessão. */
-const PUBLIC = ["/login", "/esqueci-senha", "/redefinir-senha", "/aceitar-convite", "/configuracao-inicial", "/api/health", "/manifest.webmanifest", "/icon.svg"];
+const PUBLIC = ["/login", "/esqueci-senha", "/redefinir-senha", "/aceitar-convite", "/configuracao-inicial", "/api/health", "/manifest.webmanifest", "/icon.svg", "/icon-192.png", "/icon-512.png", "/icon-maskable-512.png", "/apple-touch-icon.png", "/sw.js", "/offline.html"];
 const isPublic = (path: string) => PUBLIC.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**

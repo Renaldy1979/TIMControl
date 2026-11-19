@@ -67,3 +67,25 @@ describe("card", () => {
     expect(cardSchema.safeParse({ ...base, assignees: ["g:8c1f2a9e-1b2c-4d3e-8f40-123456789abd"] }).success).toBe(true);
   });
 });
+
+describe("anexos", () => {
+  it("aceita só tipos e tamanhos permitidos", async () => {
+    const { attachmentProblem } = await import("./schemas");
+    expect(attachmentProblem("print.PNG", 1000)).toBeNull();
+    expect(attachmentProblem("relatorio.pdf", 11 * 1024 * 1024)).toMatch(/10 MB/);
+    expect(attachmentProblem("script.exe", 10)).toMatch(/Tipo/);
+    expect(attachmentProblem("semextensao", 10)).toMatch(/Tipo/);
+    expect(attachmentProblem("", 0)).toMatch(/Escolha/);
+  });
+});
+
+describe("direitos no card", () => {
+  it("Membro trabalha nos seus; Visitante só lê; Gestor tudo", async () => {
+    const { cardRights } = await import("./permissions");
+    const card = { projectId: "p1", createdBy: "outra" };
+    expect(cardRights(viewer(prof("membro")), card, true)).toMatchObject({ edit: true, move: true, comment: true, work: true, delete: false });
+    expect(cardRights(viewer(prof("membro")), card, false)).toMatchObject({ edit: false, move: false, comment: true, work: false });
+    expect(cardRights(viewer(prof("visitante"), { p1: prof("visitante") }), card, true)).toMatchObject({ comment: false, work: false });
+    expect(cardRights(viewer(prof("gestor")), card, false)).toMatchObject({ edit: true, delete: true, work: true });
+  });
+});

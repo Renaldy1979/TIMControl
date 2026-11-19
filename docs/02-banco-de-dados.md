@@ -25,6 +25,7 @@ Os nomes do escopo (Claude Docs) em português correspondem a estes: usuario →
 
 ## Permissões (chaves da matriz)
 - `kanban.view`, `kanban.create`, `kanban.edit`, `kanban.move`, `kanban.comment`, `kanban.delete`
+  - `kanban.comment`: comentar nos cards (no Lote 3). Checklist e anexos seguem quem pode editar ou mover o card.
 - `admin.users`, `admin.profiles`, `admin.projects`, `admin.groups`
 
 `view`, `create` e `admin.*` só aceitam "todos". Uma funcionalidade nova entra em `FEATURES` (`packages/shared/src/enums.ts`) e ganha linhas na matriz.
@@ -74,5 +75,29 @@ O card não tem tipo (decisão do dono): a migração `0007_card_sem_tipo` apaga
 
 Excluir um card é definitivo (a lixeira está prevista no Lote 4) e fica registrado no `audit_log`.
 
+## Tabelas do Lote 3 (colaboração)
+| Tabela | Colunas principais | Observações |
+|---|---|---|
+| `checklist_items` | id, card_id, text, done, position, created_by, done_by, done_at, created_at | Itens do checklist do card; `position` ordena |
+| `comments` | id, card_id, author_id, body, created_at, edited_at | Texto simples (até 5.000 caracteres) |
+| `comment_mentions` | comment_id, user_id | Pessoas mencionadas no comentário (escolhidas numa lista, não pelo texto) |
+| `attachments` | id, card_id, file_id, name, mime_type, size, uploaded_by, created_at | O arquivo fica no bucket privado do Appwrite (`file_id`); aqui só os dados |
+| `notifications` | id, user_id, kind, card_id, actor_id, details, read_at, created_at | Aviso interno (sininho). `kind`: assigned, mentioned, commented, moved |
+
+A notificação não guarda o título do card: a tela busca o card com o RLS de quem lê. Se a pessoa perdeu acesso ao projeto, o aviso some sozinho.
+
+### Quem vê e altera (RLS do Lote 3, `drizzle/0009_colaboracao_rls.sql`)
+Função nova `app_card_workable(card)`: pode trabalhar no card quem o edita (`app_card_editable`) ou quem pode movê-lo (`kanban.move`, com "os seus").
+
+| Tabela | Ler | Criar | Alterar | Excluir |
+|---|---|---|---|---|
+| checklist_items | junto com o card | `app_card_workable`, em nome próprio | `app_card_workable` | `app_card_workable` |
+| comments | junto com o card | `kanban.comment` no projeto (com "os seus"), em nome próprio | só o autor | o autor ou o Gestor |
+| comment_mentions | junto com o comentário | o autor do comentário | ninguém | o autor do comentário |
+| attachments | junto com o card | `app_card_workable`, em nome próprio | ninguém | quem enviou (se ainda trabalha no card) ou quem edita o card |
+| notifications | só a destinatária, e só se ainda vê o card | quem agiu (`actor_id` = a pessoa logada), em card que ela vê | só a destinatária (marcar como lida) | só a destinatária |
+
+Cada download e cada exclusão de anexo vai para o `audit_log` (sem o nome do arquivo, que pode ter dado de cliente).
+
 ## Próximos lotes
-Lote 3: `checklist_items`, `comments`, `attachments` (id do arquivo no Appwrite), `notifications`.
+Lote 4: lixeira de cards, testes de ponta a ponta automatizados (Playwright) e ajustes da validação.

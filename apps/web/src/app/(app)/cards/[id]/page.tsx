@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardHistoryOf, getCard } from "@timcontrol/pg";
+import { cardHistoryOf, getCard, listAttachments, listChecklist, listComments, markNotificationsRead } from "@timcontrol/pg";
 import { describeHistory, formatDateTimeBR, isOwnCard } from "@timcontrol/domain";
-import { can, STATUS_LABELS } from "@timcontrol/shared";
+import { can, cardRights, STATUS_LABELS } from "@timcontrol/shared";
 import { EditCardForm } from "@/components/forms/CardForm";
 import { DeleteCardForm, MoveCardForm } from "@/components/forms/CardActions";
 import { Assignees, DueLabel, PriorityBadge } from "@/components/kanban/CardTile";
 import { Card, ProjectChip } from "@/components/ui/Card";
+import { AttachmentsPanel } from "@/components/collab/Attachments";
+import { ChecklistPanel } from "@/components/collab/Checklist";
+import { CommentsPanel } from "@/components/collab/Comments";
 import { Notice } from "@/components/ui/Notice";
 import { asActor, requireActor } from "@/server/actor";
 import { cardFormData, kanbanContext, type Search } from "@/server/kanban";
@@ -21,13 +24,22 @@ export default async function CardPage({ params, searchParams }: { params: Promi
   if (!UUID.test(id)) notFound();
   const actor = await requireActor();
   const ctx = await kanbanContext(actor);
-  const { card, history } = await asActor(actor, async (tx) => ({ card: await getCard(tx, id), history: await cardHistoryOf(tx, id) }));
-  if (!card) notFound();
+  const data = await asActor(actor, async (tx) => {
+    const card = await getCard(tx, id);
+    if (!card) return null;
+    // Abrir o card marca como lidos os avisos dele.
+    await markNotificationsRead(tx, actor.user.id, { cardId: id });
+    const [history, checklist, comments, files] = await Promise.all([cardHistoryOf(tx, id), listChecklist(tx, id), listComments(tx, id), listAttachments(tx, id)]);
+    return { card, history, checklist, comments, files };
+  });
+  if (!data) notFound();
+  const { card, history, checklist, comments, files } = data;
   const own = isOwnCard(card, actor.user.id, ctx.myGroupIds);
   const opts = { projectId: card.projectId, own };
   const canEdit = can(actor.viewer, "kanban.edit", opts);
   const canMove = can(actor.viewer, "kanban.move", opts);
   const canDelete = can(actor.viewer, "kanban.delete", opts);
+  const rights = cardRights(actor.viewer, card, own);
   // Ao editar, o card pode ir para outro projeto em que a pessoa também cria cards.
   const projects = ctx.projects.filter((p) => p.id === card.projectId || can(actor.viewer, "kanban.create", { projectId: p.id }));
   const d = canEdit ? cardFormData(actor, ctx, projects, canMove) : null;
@@ -110,6 +122,18 @@ export default async function CardPage({ params, searchParams }: { params: Promi
           </div>
         </details>
       )}
+
+      <Card>
+        <ChecklistPanel cardId={card.id} items={checklist} canWork={rights.work} />
+      </Card>
+
+      <Card>
+        <AttachmentsPanel cardId={card.id} items={files} canWork={rights.work} canEditStructure={rights.editStructure} meId={actor.user.id} />
+      </Card>
+
+      <Card>
+        <CommentsPanel cardId={card.id} comments={comments} canComment={rights.comment} meId={actor.user.id} isGestor={actor.viewer.globalProfile.systemKey === "gestor"} people={ctx.people} />
+      </Card>
 
       <Card>
         <h2 className="mb-3 text-lg font-bold">Histórico</h2>

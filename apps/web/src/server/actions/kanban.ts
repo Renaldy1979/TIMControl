@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
-  addCardHistory, audit, columnPositions, createLabel, deleteCard, deleteLabel, getCard, groupIdsOf, insertCard,
+  addCardHistory, audit, cardAudience, columnPositions, expandAssignees, notify, createLabel, deleteCard, deleteLabel, getCard, groupIdsOf, insertCard,
   listGroups, listLabels, listUsers, renumberColumn, setCardAssignees, setCardLabels, updateCardFields, updateLabel,
   type CardDetail, type Tx,
 } from "@timcontrol/pg";
@@ -125,6 +125,7 @@ export async function createCardAction(_: FormState, form: FormData): Promise<Fo
       await setCardAssignees(tx, newId, c.assignees);
       await setCardLabels(tx, newId, c.labelIds);
       await addCardHistory(tx, newId, actor.user.id, "created", { status: c.status });
+      await notify(tx, actor.user.id, newId, "assigned", await expandAssignees(tx, c.assignees));
       return newId;
     });
     revalidateKanban(id);
@@ -176,6 +177,13 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
       await setCardLabels(tx, id, c.labelIds);
       if (fields.length) await addCardHistory(tx, id, actor.user.id, "edited", { fields });
       if (moving) await addCardHistory(tx, id, actor.user.id, "moved", { from: before.status, to: c.status });
+      // Avisos: quem passou a ser responsável e, se mudou de coluna, quem acompanha o card.
+      const beforeRefs = new Set(snapshot(before).assignees);
+      const added = c.assignees.filter((a) => !beforeRefs.has(a));
+      const newPeople = added.length ? await expandAssignees(tx, added) : [];
+      const already = new Set(await expandAssignees(tx, [...beforeRefs]));
+      await notify(tx, actor.user.id, id, "assigned", newPeople.filter((u) => !already.has(u)));
+      if (moving) await notify(tx, actor.user.id, id, "moved", await cardAudience(tx, id), { from: before.status, to: c.status });
     });
     revalidateKanban(id);
     return { ok: "Card salvo." };
@@ -205,7 +213,10 @@ export async function moveCardAction(input: { id: string; status: string; before
       const moving = status !== card.status;
       const ok = await updateCardFields(tx, id, { status, position: pos, ...(moving ? { completedAt: status === "done" ? new Date() : null } : {}) });
       if (!ok) throw new ForbiddenError("kanban.move");
-      if (moving) await addCardHistory(tx, id, actor.user.id, "moved", { from: card.status, to: status });
+      if (moving) {
+        await addCardHistory(tx, id, actor.user.id, "moved", { from: card.status, to: status });
+        await notify(tx, actor.user.id, id, "moved", await cardAudience(tx, id), { from: card.status, to: status });
+      }
     });
     revalidateKanban(id);
     return { ok: true };

@@ -60,7 +60,18 @@ Em **Auth → Templates**, idioma **pt-br** (os modelos só ficam editáveis com
 **Overview → Integrations → API keys → Create API key**, nome `timcontrol-portal`. Escopos do Lote 1 (só estes): `users.read`, `users.write`, `sessions.write`. Copie a chave **uma vez** direto para `APPWRITE_API_KEY` no EasyPanel (passo 4).
 Anote também o **Endpoint** (`https://…/v1`) e o **Project ID**.
 
-> No Lote 3 entram `files.read`, `files.write` e `buckets.read` para os anexos.
+> No Lote 3 entram `files.read` e `files.write` para os anexos (passo 1.6).
+
+### 1.6 Bucket de anexos (Lote 3)
+1. **Storage → Create bucket**, nome `anexos`. Anote o **Bucket ID** (ex.: `anexos`).
+2. Em **Settings** do bucket:
+   - **Permissions:** deixe **vazio** (nenhum papel, nem "Any" nem "Users"). Só o portal, com a chave de API, lê e grava.
+   - **File security:** desligado.
+   - **Maximum file size:** 10 MB.
+   - **Allowed file extensions:** `png, jpg, jpeg, gif, webp, pdf, txt, csv, log, json, xlsx, xls, docx, doc, pptx, zip`.
+   - **Encryption:** ligado. **Antivirus:** ligado, se a sua instância tiver o ClamAV.
+3. Na chave de API `timcontrol-portal` (passo 1.5), acrescente os escopos `files.read` e `files.write`.
+4. No EasyPanel, serviço `timcontrol-web` → **Environment**, cadastre `APPWRITE_BUCKET_ID` com o id do passo 1 e faça o deploy.
 
 ---
 
@@ -114,6 +125,7 @@ Não abra a porta do banco para a internet.
    | `APPWRITE_ENDPOINT` | `https://…/v1` |
    | `APPWRITE_PROJECT_ID` | o Project ID do TIMControl |
    | `APPWRITE_API_KEY` | a chave do passo 1.5 (**segredo**) |
+   | `APPWRITE_BUCKET_ID` | id do bucket de anexos (passo 1.6, a partir do Lote 3) |
    | `SETUP_CODE` | o código que você anotou (**segredo**) |
    | `APP_VERSION` | `v0.1.0` |
 
@@ -152,3 +164,6 @@ Cada merge na `main` vira um deploy (ligue **Auto Deploy** no EasyPanel, ou cliq
 | `/api/health` com `db:false` | `DATABASE_URL` errada ou papéis não criados (3) |
 | "Configuração inicial fechada" | `SETUP_CODE` ausente ou com menos de 12 caracteres |
 | Pessoa entra e volta para o login | ela está desativada ou ainda não aceitou o convite |
+| Enviar anexo dá "Não foi possível salvar agora" | `APPWRITE_BUCKET_ID` ausente ou errado, ou a chave de API sem `files.write` (1.6) |
+| Baixar anexo dá "Não foi possível buscar o arquivo agora" | a chave de API sem `files.read` (1.6) |
+| Anexo recusado com aviso de tipo ou 10 MB | limite do portal: só imagem, PDF, texto, planilha, documento ou zip, até 10 MB |

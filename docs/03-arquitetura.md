@@ -35,3 +35,12 @@ Marca `disabled` no Postgres, bloqueia o login no Appwrite e derruba todas as se
 - Arrastar e soltar: `@dnd-kit` no navegador (mouse, toque segurando um instante e teclado). Ao soltar, a tela já mostra o card no lugar e chama `moveCardAction` com a coluna e o card que ficou logo abaixo; se o servidor recusar, o card volta e aparece o motivo. A posição nova é calculada em `dropPosition` (`packages/domain`).
 - Cada ação confere a permissão com `can()` e o "é meu" (`isOwnCard`: criou ou é responsável, direto ou por grupo) antes de gravar; o RLS confere de novo no banco.
 - O histórico é gravado na mesma transação da alteração.
+
+## Colaboração (Lote 3)
+- **Comentários:** formulário na tela do card. A menção é escolhida numa lista de pessoas ("Avisar") e cada mencionada recebe uma notificação. O autor edita ou apaga o seu; o Gestor apaga qualquer um.
+- **Checklist:** itens com caixa de marcar e barra de progresso (x de y). Quem edita ou pode mover o card mexe no checklist.
+- **Anexos:** enviados pela tela do card (até 10 MB; imagens, PDF, texto, planilhas, documentos e zip). O servidor confere a permissão, grava o arquivo no bucket privado do Appwrite com a chave de API e guarda só os dados em `attachments`. O download passa sempre por `/api/anexos/[id]`: o servidor busca o anexo com o RLS de quem pediu, registra no `audit_log` e entrega o arquivo. Não existe link público nem link direto do Appwrite.
+- **Notificações (sininho):** gravadas na mesma transação da ação que as gerou. Avisam quando alguém te coloca como responsável (direto ou pelo seu grupo), te menciona, comenta ou move um card seu (que você criou ou de que é responsável). Quem fez a ação não é avisado. O número de não lidas aparece no topo; `/notificacoes` lista e marca como lida.
+- **Painel de contadores:** no Início, com você, atrasados, vencem em 7 dias e concluídos nos últimos 7 dias, sempre dentro dos projetos que a pessoa vê.
+- **Instalar como app (PWA):** manifesto com ícones e um service worker mínimo que só mostra uma página "sem conexão". Ele não guarda dados dos cards no aparelho (podem ter dado de cliente).
+

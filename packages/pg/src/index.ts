@@ -9,3 +9,4 @@ export * from "./projects";
 export * from "./groups";
 export * from "./cards";
 export { seedInitialData, INITIAL_PROJECTS, INITIAL_GROUPS, INITIAL_LABELS } from "./seed";
+export * from "./collab";
