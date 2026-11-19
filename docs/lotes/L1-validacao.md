@@ -1,6 +1,6 @@
 # Lote 1 — Validação do dono
 
-Data: ___/___/______  ·  Ambiente: ENDEREÇO do staging  ·  Versão: v0.1.0
+Data: ___/___/______  ·  Ambiente: https://automacoes-timcontrol.8m5sgi.easypanel.host  ·  Versão: v0.1.0
 
 | Passo | Resultado (ok / o que aconteceu) |
 |---|---|
