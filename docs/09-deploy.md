@@ -74,6 +74,7 @@ Não abra a porta do banco para a internet.
 
 ## 3. Criar os papéis do banco (dono e app)
 1. Serviço `timcontrol-db` → **Console** → `psql -U USUARIO -d NOME_DO_BANCO` (usuário e banco do Credentials)
+   **Importante:** entre já no banco do TIMControl (`-d NOME_DO_BANCO`, por exemplo `automacoes`), não no `postgres`. Os comandos de schema só valem para o banco em que você está conectado; se rodar no banco errado, a migração falha com "permission denied for database".
 2. Cole, trocando `SENHA_DONO`, `SENHA_APP` e `NOME_DO_BANCO`:
    ```sql
    CREATE ROLE timcontrol_owner LOGIN PASSWORD 'SENHA_DONO' NOSUPERUSER BYPASSRLS NOCREATEDB NOCREATEROLE;
@@ -146,6 +147,8 @@ Cada merge na `main` vira um deploy (ligue **Auto Deploy** no EasyPanel, ou cliq
 | Convite ou recuperação não chega | olhe o spam; rode *Send test email* (1.2); na Brevo, **Transactional → Logs** mostra se saiu. O Gestor pode reenviar o convite em Usuários |
 | *Send test email* falha | Username tem que ser o Login SMTP (não o seu e-mail) e Password a SMTP key (não a API key); porta 587 com TLS |
 | Site não abre / 502 | porta do domínio no EasyPanel ainda em 80 (4.5) |
+| Migração: "permission denied for database" | o passo 3 rodou em outro banco; refaça-o conectado com `-d NOME_DO_BANCO` (sem as linhas `CREATE ROLE`) |
+| "relation users does not exist" ao abrir | faltou a migração (5) |
 | `/api/health` com `db:false` | `DATABASE_URL` errada ou papéis não criados (3) |
 | "Configuração inicial fechada" | `SETUP_CODE` ausente ou com menos de 12 caracteres |
 | Pessoa entra e volta para o login | ela está desativada ou ainda não aceitou o convite |
