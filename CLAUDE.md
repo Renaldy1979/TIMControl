@@ -13,12 +13,12 @@ Sistema departamental da área de Dev Ops (TIM). Primeiro módulo: **Kanban** de
 Se um documento e o código divergirem, **pare e avise** em vez de decidir sozinho. Mudanças de contrato (dados, tipos, permissões) são feitas no documento primeiro.
 
 ## Stack
-Next.js (App Router) + TypeScript + Tailwind · **Postgres 16 + Drizzle** com **RLS** · **Appwrite 1.8.1 só para Auth (e-mail/senha) e, no Lote 3, bucket privado de anexos** (instância que já roda na VPS, projeto "TIMControl") · **EasyPanel** na VPS Hostinger, deploy a partir do GitHub · Testes: Vitest (+ Playwright a partir do Lote 2).
+Next.js (App Router) + TypeScript + Tailwind · **Postgres 16 + Drizzle** com **RLS** · **Appwrite 1.8.1 só para Auth (e-mail/senha) e, no Lote 3, bucket privado de anexos** (instância que já roda na VPS, projeto "TIMControl") · **EasyPanel** na VPS Hostinger, deploy a partir do GitHub · Testes: Vitest (unitários e de banco com RLS); testes de ponta a ponta automatizados (Playwright) entram no Lote 4.
 Padrão de referência: projeto `controle-remedios` do dono (mesmo monorepo, `withFamilia` → aqui `withUser`, papéis dono/app, lotes com roteiro e validação).
 
 ## Regras inegociáveis
 - **Permissão no servidor e no banco.** Toda Server Action confere `can()` (packages/shared) e todo acesso a dados passa por `withUser` (RLS com `app.user_id`). Esconder botão na tela não é segurança.
-- **Visitante só vê o que foi liberado.** Projeto visível = Gestor, ou perfil específico no projeto (`project_members`), ou perfil global com "vê todos os projetos". A mesma regra existe em `permissions.ts` e em `app_sees_project()` no SQL: mudou uma, mude a outra e os testes.
+- **Visitante só vê o que foi liberado.** Projeto visível = Gestor, ou perfil específico no projeto (`project_members`), ou perfil global com "vê todos os projetos". A mesma regra existe em `permissions.ts` e no SQL (`app_sees_project()`, `app_profile_for()` e `app_can()`): mudou uma, mude a outra e os testes.
 - **Gestor não perde poderes.** O perfil `gestor` tem tudo, não é editável, e ninguém tira o próprio perfil de Gestor.
 - **`withSistema` só antes de saber quem é a pessoa** (login, convite, configuração inicial) ou para gravar algo da própria pessoa depois de conferir a identidade.
 - **Dados sensíveis.** Prints e anexos podem ter dados de clientes: sem link público, sem dados pessoais em logs, auditoria em `audit_log`.

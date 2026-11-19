@@ -6,7 +6,11 @@ import { BottomNav, SideNav, type NavItem } from "./NavLinks";
 export function AppShell({ userName, profileName, showAdmin, children }: { userName: string; profileName: string; showAdmin: boolean; children: React.ReactNode }) {
   const items: NavItem[] = [
     { href: "/", label: "Início", icon: "home" },
-    ...(showAdmin ? [{ href: "/configuracoes", label: "Configurações", icon: "settings" } as const] : []),
+    { href: "/quadro", label: "Quadro", icon: "board" },
+    { href: "/minhas", label: "Minhas", icon: "mine" },
+    { href: "/pedi", label: "Pedi", icon: "asked" },
+    { href: "/reunioes", label: "Reuniões", icon: "meetings" },
+    ...(showAdmin ? [{ href: "/configuracoes", label: "Configurações", icon: "settings", desktopOnly: true } as const] : []),
     { href: "/conta", label: "Conta", icon: "user" },
   ];
   const initials = userName

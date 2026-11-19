@@ -22,9 +22,18 @@ export const INITIAL_GROUPS = [
   { name: "Engineering", description: "Fábrica" },
 ] as const;
 
+/** Etiquetas iniciais (o Gestor muda em Configurações → Etiquetas). */
+export const INITIAL_LABELS = [
+  { name: "Análise", color: "#0EA5E9" },
+  { name: "Correção", color: "#EF4444" },
+  { name: "Melhoria", color: "#10B981" },
+  { name: "Dúvida", color: "#F59E0B" },
+  { name: "Documentação", color: "#6366F1" },
+] as const;
+
 /**
  * Dados iniciais: perfis do sistema com a matriz padrão e, se o banco ainda não tiver nenhum,
- * os 3 projetos e 3 grupos iniciais. Idempotente: pode rodar de novo sem duplicar.
+ * os 3 projetos, 3 grupos e as etiquetas iniciais. Idempotente: pode rodar de novo sem duplicar.
  */
 export async function seedInitialData(tx: Tx): Promise<void> {
   await ensureSystemProfiles(tx);
@@ -32,6 +41,8 @@ export async function seedInitialData(tx: Tx): Promise<void> {
   if ((p?.n ?? 0) === 0) await tx.insert(schema.projects).values(INITIAL_PROJECTS.map((x) => ({ ...x })));
   const [g] = await tx.select({ n: sql<number>`count(*)::int` }).from(schema.groups);
   if ((g?.n ?? 0) === 0) await tx.insert(schema.groups).values(INITIAL_GROUPS.map((x) => ({ ...x })));
+  const [l] = await tx.select({ n: sql<number>`count(*)::int` }).from(schema.labels);
+  if ((l?.n ?? 0) === 0) await tx.insert(schema.labels).values(INITIAL_LABELS.map((x) => ({ ...x })));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -45,5 +45,35 @@ Contexto da transação: `app.user_id` (`withUser`) ou `app.sistema = 'on'` (`wi
 
 Convidados e desativados não veem nada, mesmo que o perfil seja Gestor.
 
+## Tabelas do Lote 2 (Kanban)
+| Tabela | Campos principais | Observações |
+|---|---|---|
+| `cards` | id, project_id, type (task/request), title, description, status (todo/doing/review/done), position, priority (low/normal/high/urgent), due_date, created_by, requester_id, requested_at, external_ref, meeting_id, completed_at, updated_at | `position` ordena a coluna (números com folga; a coluna é renumerada quando falta espaço) |
+| `card_assignees` | id, card_id, user_id **ou** group_id | uma pessoa ou um grupo por linha |
+| `labels` | id, name, color | cadastradas pelo Gestor (Configurações → Etiquetas), valem para todos os projetos |
+| `card_labels` | card_id, label_id | |
+| `card_history` | id, card_id, actor_user_id, action (created/moved/edited), details, created_at | `details` guarda colunas e nomes de campos, nunca o texto do card |
+| `meetings` | id, project_id, kind (meeting/warroom), title, held_on, notes, created_by | Reunião ou WarRoom; os cards apontam para ela por `meeting_id` |
+| `meeting_participants` | meeting_id, user_id | |
+
+Datas sem hora (`due_date`, `requested_at`, `held_on`) são `date` e seguem o dia de São Paulo. "Atrasado" = prazo antes de hoje (São Paulo) e card fora de Concluído.
+
+### Quem vê e altera (RLS do Lote 2, `drizzle/0005_kanban_rls.sql`)
+Funções novas, com a mesma regra de `permissions.ts`:
+- `app_profile_for(projeto)`: perfil que vale (Gestor global; senão o específico do projeto; senão o global se "vê todos os projetos").
+- `app_can(projeto, permissão, é_meu)`: alcance "todos" sempre pode; "os seus" só se `é_meu`.
+- `app_card_own(card)`: a pessoa criou o card ou é responsável, direto ou por um grupo dela. `app_meeting_own(reunião)`: criou ou participou.
+
+| Tabela | Ler | Criar | Alterar | Excluir |
+|---|---|---|---|---|
+| cards | quem vê o projeto | `kanban.create`, em nome próprio | `kanban.edit` **ou** `kanban.move` (o servidor separa os dois) | `kanban.delete` |
+| card_assignees, card_labels | junto com o card | quem edita o card ou quem o criou | idem | idem |
+| card_history | junto com o card | em nome próprio, em card que vê | ninguém | ninguém (some com o card) |
+| labels | pessoa ativa | Gestor | Gestor | Gestor |
+| meetings | `meetings.view` no projeto | `meetings.create`, em nome próprio | `meetings.edit` | `meetings.delete` |
+| meeting_participants | junto com a reunião | quem edita a reunião ou quem a criou | idem | idem |
+
+Excluir um card é definitivo (a lixeira está prevista no Lote 4) e fica registrado no `audit_log`.
+
 ## Próximos lotes
-Lote 2: `cards`, `card_assignees` (usuário ou grupo), `meetings`, `labels`, `card_labels`, `checklist_items`, `card_history`. Lote 3: `comments`, `attachments` (id do arquivo no Appwrite), `notifications`.
+Lote 3: `checklist_items`, `comments`, `attachments` (id do arquivo no Appwrite), `notifications`.

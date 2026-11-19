@@ -7,4 +7,6 @@ export * from "./profiles";
 export * from "./users";
 export * from "./projects";
 export * from "./groups";
-export { seedInitialData, INITIAL_PROJECTS, INITIAL_GROUPS } from "./seed";
+export * from "./cards";
+export * from "./meetings";
+export { seedInitialData, INITIAL_PROJECTS, INITIAL_GROUPS, INITIAL_LABELS } from "./seed";

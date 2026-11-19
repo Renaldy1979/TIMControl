@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigserial, boolean, check, index, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, check, date, doublePrecision, index, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Modelo de dados do Lote 1 (docs/02-banco-de-dados.md é a fonte da verdade).
@@ -153,4 +153,141 @@ export const auditLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("audit_log_created_ix").on(t.createdAt)],
+);
+
+// ======================= Lote 2: Kanban =======================
+
+const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
+
+/** Reunião ou WarRoom: registro simples; os cards criados nela apontam para cá. */
+export const meetings = pgTable(
+  "meetings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    title: text("title").notNull(),
+    heldOn: date("held_on").notNull(),
+    notes: text("notes").notNull().default(""),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("meetings_project_ix").on(t.projectId, t.heldOn), check("meetings_kind_ck", sql`${t.kind} in ('meeting','warroom')`)],
+);
+
+export const meetingParticipants = pgTable(
+  "meeting_participants",
+  {
+    meetingId: uuid("meeting_id")
+      .notNull()
+      .references(() => meetings.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.meetingId, t.userId] })],
+);
+
+/** Card do quadro: Tarefa do time ou Solicitação. Colunas fixas em `status`; ordem na coluna em `position`. */
+export const cards = pgTable(
+  "cards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status").notNull().default("todo"),
+    position: doublePrecision("position").notNull().default(0),
+    priority: text("priority").notNull().default("normal"),
+    dueDate: date("due_date"),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    /** Solicitação: quem pediu (pode ser outra pessoa, ex.: o gerente). */
+    requesterId: uuid("requester_id").references(() => users.id, { onDelete: "set null" }),
+    requestedAt: date("requested_at"),
+    /** Número de bug/chamado em outra ferramenta, só como texto. */
+    externalRef: text("external_ref").notNull().default(""),
+    meetingId: uuid("meeting_id").references(() => meetings.id, { onDelete: "set null" }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("cards_board_ix").on(t.projectId, t.status, t.position),
+    index("cards_meeting_ix").on(t.meetingId),
+    index("cards_requester_ix").on(t.requesterId),
+    check("cards_type_ck", sql`${t.type} in ('task','request')`),
+    check("cards_status_ck", sql`${t.status} in ('todo','doing','review','done')`),
+    check("cards_priority_ck", sql`${t.priority} in ('low','normal','high','urgent')`),
+  ],
+);
+
+/** Responsáveis do card: uma pessoa OU um grupo por linha. */
+export const cardAssignees = pgTable(
+  "card_assignees",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    groupId: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    index("card_assignees_card_ix").on(t.cardId),
+    index("card_assignees_user_ix").on(t.userId),
+    index("card_assignees_group_ix").on(t.groupId),
+    uniqueIndex("card_assignees_uq").on(t.cardId, sql`coalesce(${t.userId}, ${t.groupId})`),
+    check("card_assignees_one_ck", sql`(${t.userId} is null) <> (${t.groupId} is null)`),
+  ],
+);
+
+/** Etiquetas (cadastradas pelo Gestor, valem para todos os projetos). */
+export const labels = pgTable(
+  "labels",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    color: text("color").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("labels_name_uq").on(sql`lower(${t.name})`)],
+);
+
+export const cardLabels = pgTable(
+  "card_labels",
+  {
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    labelId: uuid("label_id")
+      .notNull()
+      .references(() => labels.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.cardId, t.labelId] })],
+);
+
+/** Histórico do card: quem fez o quê e quando (criou, moveu, editou, mudou responsáveis). */
+export const cardHistory = pgTable(
+  "card_history",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: createdAt(),
+  },
+  (t) => [index("card_history_card_ix").on(t.cardId, t.createdAt)],
 );
