@@ -1,0 +1,47 @@
+@import "@fontsource-variable/plus-jakarta-sans";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Paleta do modelo.webp: menu lateral índigo escuro, roxo como cor principal, fundo lavanda claro. */
+:root {
+  --bg: #f3f4fb;
+  --sf: #ffffff;
+  --sf2: #f6f5fe;
+  --bd: #e6e4f3;
+  --ink: #1b1530;
+  --ink2: #4b4565;
+  --ink3: #6e6889;
+  --br: #7c5cfc;
+  --br2: #6440f0;
+  --br-soft: #efeaff;
+  --side: #1e0b4b;
+  --side-ink: #c9c0f2;
+  --side-act: #7c5cfc;
+  --ok: #0f7a4f;
+  --ok-bg: #e3f6ec;
+  --warn: #9a5b00;
+  --warn-bg: #fff2dc;
+  --danger: #b4232a;
+  --danger-bg: #fde8e8;
+  --info: #1d5fd1;
+  --info-bg: #e5efff;
+  color-scheme: light;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--br);
+  outline-offset: 2px;
+}

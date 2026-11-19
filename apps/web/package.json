@@ -1,0 +1,41 @@
+{
+  "name": "@timcontrol/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@timcontrol/domain": "workspace:*",
+    "@timcontrol/pg": "workspace:*",
+    "@timcontrol/shared": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "lucide-react": "^0.460.0",
+    "next": "15",
+    "node-appwrite": "19.1.0",
+    "react": "19",
+    "react-dom": "19",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "20",
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.20",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.5.33",
+    "tailwindcss": "3",
+    "typescript": "^5.7.2",
+    "vitest": "2"
+  }
+}
