@@ -36,3 +36,6 @@
 
 ## Lote 4 — Estabilização
 Backup criptografado do Postgres (R2), restauração testada, testes de ponta a ponta, lixeira de cards e ajustes pedidos pelo time.
+
+Já combinado para o Lote 4:
+- **Projetos na ficha da pessoa** (Configurações → Usuários): ver, liberar e tirar os projetos que a pessoa vê, com o perfil em cada um, sem precisar ir projeto por projeto. Mesma regra de hoje (`project_members`, só o Gestor altera); pedido do dono em 19/11/2026.
