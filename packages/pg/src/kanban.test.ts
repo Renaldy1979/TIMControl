@@ -15,8 +15,8 @@ import { sql } from "drizzle-orm";
 const hasDb = await dbAvailable();
 
 const base = (projectId: string, over: Partial<CardWrite> = {}): CardWrite => ({
-  projectId, type: "task", title: "Analisar lentidão", description: "", status: "todo", position: 1024, priority: "normal", dueDate: null,
-  requesterId: null, requestedAt: null, externalRef: "", ...over,
+  projectId, title: "Analisar lentidão", description: "", status: "todo", position: 1024, priority: "normal", dueDate: null,
+  externalRef: "", ...over,
 });
 
 describe.skipIf(!hasDb)("Kanban + RLS (Lote 2)", () => {
@@ -61,7 +61,7 @@ describe.skipIf(!hasDb)("Kanban + RLS (Lote 2)", () => {
 
   it("Membro cria card com responsáveis, etiquetas e histórico", async () => {
     const id = await withUser(u.membro, async (tx) => {
-      const id = await insertCard(tx, u.membro, base(p.tv, { type: "request", requesterId: u.membro }));
+      const id = await insertCard(tx, u.membro, base(p.tv));
       await setCardAssignees(tx, id, [`u:${u.membro2}`, `g:${accenture}`]);
       const [l] = await listLabels(tx);
       await setCardLabels(tx, id, [l!.id]);
@@ -124,8 +124,8 @@ describe.skipIf(!hasDb)("Kanban + RLS (Lote 2)", () => {
     const minhas = await withUser(u.fabrica, (tx) => listCards(tx, { assignedTo: u.fabrica }), db.app);
     expect(minhas.map((c) => c.title)).toContain("Pedido à Accenture");
     const pedi = await withUser(u.membro, (tx) => listCards(tx, { requestedBy: u.membro }), db.app);
-    expect(pedi.every((c) => c.type === "request")).toBe(true);
-    expect(pedi.length).toBe(1);
+    // Só o que ela criou para outra pessoa ou grupo (o card do Ecommerce não tem responsável).
+    expect(pedi.map((c) => c.title)).toEqual(["Analisar lentidão"]);
     await withUser(u.gestor, (tx) => insertCard(tx, u.gestor, base(p.tv, { title: "Vencido", dueDate: "2026-01-01" })), db.app);
     const atrasados = await withUser(u.gestor, (tx) => listCards(tx, { due: { kind: "overdue", today: "2026-11-19" } }), db.app);
     expect(atrasados.map((c) => c.title)).toEqual(["Vencido"]);

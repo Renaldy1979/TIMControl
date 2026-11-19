@@ -1,4 +1,4 @@
-import type { CardStatus, CardType, Feature, Priority, Scope, UserState } from "./enums";
+import type { CardStatus, Feature, Priority, Scope, UserState } from "./enums";
 
 /** Textos da interface (pt-BR). Código e chaves ficam em inglês. */
 export const FEATURE_LABELS: Record<Feature, string> = {
@@ -38,7 +38,6 @@ export const STATUS_LABELS: Record<CardStatus, string> = {
   done: "Concluído",
 };
 
-export const TYPE_LABELS: Record<CardType, string> = { task: "Tarefa", request: "Solicitação" };
 
 export const PRIORITY_LABELS: Record<Priority, string> = { low: "Baixa", normal: "Normal", high: "Alta", urgent: "Urgente" };
 

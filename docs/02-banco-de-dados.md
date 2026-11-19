@@ -47,13 +47,13 @@ Convidados e desativados não veem nada, mesmo que o perfil seja Gestor.
 ## Tabelas do Lote 2 (Kanban)
 | Tabela | Campos principais | Observações |
 |---|---|---|
-| `cards` | id, project_id, type (task/request), title, description, status (todo/doing/review/done), position, priority (low/normal/high/urgent), due_date, created_by, requester_id, requested_at, external_ref, completed_at, updated_at | `position` ordena a coluna (números com folga; a coluna é renumerada quando falta espaço) |
+| `cards` | id, project_id, title, description, status (todo/doing/review/done), position, priority (low/normal/high/urgent), due_date, created_by, external_ref, completed_at, updated_at | `position` ordena a coluna (números com folga; a coluna é renumerada quando falta espaço) |
 | `card_assignees` | id, card_id, user_id **ou** group_id | uma pessoa ou um grupo por linha |
 | `labels` | id, name, color | cadastradas pelo Gestor (Configurações → Etiquetas), valem para todos os projetos |
 | `card_labels` | card_id, label_id | |
 | `card_history` | id, card_id, actor_user_id, action (created/moved/edited), details, created_at | `details` guarda colunas e nomes de campos, nunca o texto do card |
 
-Datas sem hora (`due_date`, `requested_at`, `held_on`) são `date` e seguem o dia de São Paulo. "Atrasado" = prazo antes de hoje (São Paulo) e card fora de Concluído.
+Datas sem hora (`due_date`) são `date` e seguem o dia de São Paulo. "Atrasado" = prazo antes de hoje (São Paulo) e card fora de Concluído.
 
 ### Quem vê e altera (RLS do Lote 2, `drizzle/0005_kanban_rls.sql`)
 Funções novas, com a mesma regra de `permissions.ts`:
@@ -69,6 +69,8 @@ Funções novas, com a mesma regra de `permissions.ts`:
 | labels | pessoa ativa | Gestor | Gestor | Gestor |
 
 Reuniões e WarRooms saíram do escopo: a migração `0006_remove_meetings` apaga as tabelas `meetings` e `meeting_participants`, a coluna `cards.meeting_id`, as funções `app_meeting_*` e as permissões `meetings.*` dos perfis. Os cards ficam.
+
+O card não tem tipo (decisão do dono): a migração `0007_card_sem_tipo` apaga `type`, `requester_id` e `requested_at` e dá a quem criou o card a responsabilidade pelos cards antigos que estavam sem responsável. Todo card precisa de ao menos um responsável (pessoa ou grupo); o servidor confere (`cardSchema`).
 
 Excluir um card é definitivo (a lixeira está prevista no Lote 4) e fica registrado no `audit_log`.
 

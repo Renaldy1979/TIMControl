@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CARD_STATUSES, PRIORITIES, PRIORITY_LABELS, STATUS_LABELS, type CardType } from "@timcontrol/shared";
+import { CARD_STATUSES, PRIORITIES, PRIORITY_LABELS, STATUS_LABELS } from "@timcontrol/shared";
 import { createCardAction, updateCardAction } from "@/server/actions/kanban";
 import { ActionForm } from "../ui/ActionForm";
 import { Field, Select } from "../ui/Field";
@@ -24,7 +24,6 @@ export interface CardFormData {
 export interface CardValues {
   id?: string;
   projectId?: string;
-  type?: CardType;
   title?: string;
   description?: string;
   status?: string;
@@ -32,8 +31,6 @@ export interface CardValues {
   dueDate?: string | null;
   assignees?: string[];
   labelIds?: string[];
-  requesterId?: string | null;
-  requestedAt?: string | null;
   externalRef?: string;
 }
 
@@ -43,32 +40,13 @@ const area = "w-full rounded-md border border-bd bg-sf px-3 py-2 text-[15px] tex
 const list = (v: string | undefined) => (v ? v.split(",").filter(Boolean) : undefined);
 
 function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string, string> }) {
-  const [type, setType] = useState<CardType>((v.tipo as CardType) ?? c.type ?? "task");
   const [projectId, setProjectId] = useState(v.projeto ?? c.projectId ?? d.projects[0]?.id ?? "");
-  const assignees = new Set(list(v.responsaveis) ?? c.assignees ?? []);
-  const labelIds = new Set(list(v.etiquetas) ?? c.labelIds ?? []);
+  // Depois de um erro, vale o que a pessoa marcou (inclusive "nada"), não o valor inicial.
+  const echoed = Object.keys(v).length > 0;
+  const assignees = new Set(echoed ? (list(v.responsaveis) ?? []) : (c.assignees ?? []));
+  const labelIds = new Set(echoed ? (list(v.etiquetas) ?? []) : (c.labelIds ?? []));
   return (
     <>
-      <fieldset>
-        <legend className="mb-2 text-sm font-semibold text-ink2">Tipo</legend>
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ["task", "Tarefa", "Atividade do time"],
-              ["request", "Solicitação", "Pedido de alguém para alguém (fábrica, colega, gestor)"],
-            ] as const
-          ).map(([val, label, hint]) => (
-            <label key={val} className="flex min-h-touch flex-1 cursor-pointer items-start gap-3 rounded-md border border-bd bg-sf p-3 has-[:checked]:border-br has-[:checked]:bg-br-soft">
-              <input type="radio" name="tipo" value={val} checked={type === val} onChange={() => setType(val)} className="mt-1 h-4 w-4 accent-[var(--br)]" />
-              <span>
-                <span className="block font-semibold text-ink">{label}</span>
-                <span className="block text-xs text-ink3">{hint}</span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
       <Field label="Título" name="titulo" required minLength={3} maxLength={160} defaultValue={v.titulo ?? c.title} placeholder="Ex.: Analisar lentidão no checkout" />
 
       <div className="flex flex-col gap-1.5">
@@ -104,12 +82,12 @@ function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string,
             </option>
           ))}
         </Select>
-        <Field label={type === "request" ? "Prazo combinado" : "Prazo"} name="prazo" type="date" defaultValue={v.prazo ?? c.dueDate ?? ""} />
+        <Field label="Prazo" name="prazo" type="date" defaultValue={v.prazo ?? c.dueDate ?? ""} />
       </div>
 
       <fieldset>
-        <legend className="mb-1 text-sm font-semibold text-ink2">Responsáveis {type === "request" && <span className="font-normal text-ink3">(ao menos um)</span>}</legend>
-        <p className="mb-2 text-xs text-ink3">Pode marcar pessoas e grupos. Um grupo vale para todas as pessoas dele.</p>
+        <legend className="mb-1 text-sm font-semibold text-ink2">Responsáveis <span className="font-normal text-ink3">(ao menos um)</span></legend>
+        <p className="mb-2 text-xs text-ink3">Para quem é o card: pessoas, grupos ou os dois. Um grupo vale para todas as pessoas dele.</p>
         <div className="grid max-h-64 gap-x-4 overflow-y-auto rounded-md border border-bd bg-sf p-3 sm:grid-cols-2">
           <p className="col-span-full text-xs font-bold uppercase tracking-wide text-ink3">Grupos</p>
           {d.groups.map((g) => (
@@ -141,19 +119,6 @@ function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string,
             ))}
           </div>
         </fieldset>
-      )}
-
-      {type === "request" && (
-        <div className="grid gap-4 rounded-md bg-sf2 p-4 sm:grid-cols-2">
-          <Select label="Solicitante" name="solicitante" defaultValue={v.solicitante ?? c.requesterId ?? d.meId}>
-            {d.people.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-          <Field label="Data do pedido" name="pedidoEm" type="date" defaultValue={v.pedidoEm ?? c.requestedAt ?? d.today} />
-        </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">

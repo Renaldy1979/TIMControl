@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CARD_TYPES, PRIORITIES, PRIORITY_LABELS, TYPE_LABELS } from "@timcontrol/shared";
+import { PRIORITIES, PRIORITY_LABELS } from "@timcontrol/shared";
 import type { FilterState, KanbanContext } from "@/server/kanban";
 import { buttonClass } from "../ui/Button";
 
@@ -37,16 +37,6 @@ export function Filters({ ctx, f, action, hide = [], extra }: { ctx: KanbanConte
             {ctx.projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
-              </option>
-            ))}
-          </Sel>
-        )}
-        {show("tipo") && (
-          <Sel name="tipo" label="Tipo" value={f.tipo}>
-            <option value="">Todos</option>
-            {CARD_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {TYPE_LABELS[t]}
               </option>
             ))}
           </Sel>

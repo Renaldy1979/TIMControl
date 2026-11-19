@@ -6,14 +6,14 @@ Marque cada passo como **ok** ou descreva o que aconteceu em `L2-validacao.md`.
 
 1. **Início.** Entre como Gestor. O Início mostra os projetos com a contagem de cards em aberto e a seção "Com você agora". O menu ganhou Quadro, Minhas e Pedi. Não existe mais Reuniões.
 2. **Grupo da fábrica.** Configurações → Grupos → abra "Accenture" e marque a pessoa da fábrica. Salve.
-3. **Solicitação à fábrica.** Quadro → **Novo card**. Escolha **Solicitação**, projeto WhatsApp CX, um título, prioridade Urgente, um prazo de ontem, o grupo **Accenture** e a etiqueta Análise. Crie. A tela do card mostra "Atrasado" no prazo.
-4. **Mais cards.** Crie uma Tarefa em TIM Vendas para o Membro e outra para você em Ecommerce (botão **Novo card** no Quadro).
-5. **Arrastar no computador.** Quadro → arraste a tarefa do Membro de "A Fazer" para "Em andamento". Recarregue: ela continua lá. Arraste também para mudar a ordem dentro de uma coluna.
-6. **Filtros e lista.** No Quadro, filtre Prazo = Atrasados (aparece só a solicitação). Limpe, busque por uma palavra do título. Troque para **Lista** e ordene por Prioridade.
-7. **Histórico.** Abra a tarefa que você arrastou. No Histórico aparecem "criou o card" e "moveu de A Fazer para Em andamento", com data e hora de Brasília.
-8. **Membro.** Entre como o Membro. Em **Minhas** aparece a tarefa dele. No Quadro, cards que não são dele mostram um cadeado e não arrastam.
-9. **Fábrica no celular.** Entre como a pessoa da fábrica no celular. O Quadro mostra só WhatsApp CX. Em **Minhas** aparece a solicitação (ela é responsável pelo grupo Accenture). Abra o card, use **Mover para → Em revisão**. Tente também arrastar no quadro, segurando o card um instante.
-10. **Pedi a outros.** Como Gestor, **Pedi** mostra a solicitação que você abriu, com o status atualizado pela fábrica.
+3. **Card para a fábrica.** Quadro → **Novo card**. Não há mais escolha de tipo. Projeto WhatsApp CX, um título, prioridade Urgente, um prazo de ontem, desmarque você e marque o grupo **Accenture** e a etiqueta Análise. Antes, tente criar sem nenhum responsável: aparece "Escolha ao menos um responsável". Crie. A tela do card mostra "Atrasado" no prazo.
+4. **Mais cards.** Crie um card em TIM Vendas para o Membro e outro para você em Ecommerce (botão **Novo card** no Quadro).
+5. **Arrastar no computador.** Quadro → arraste o card do Membro de "A Fazer" para "Em andamento". Recarregue: ela continua lá. Arraste também para mudar a ordem dentro de uma coluna.
+6. **Filtros e lista.** No Quadro, filtre Prazo = Atrasados (aparece só o card da Accenture). Limpe, busque por uma palavra do título. Troque para **Lista** e ordene por Prioridade.
+7. **Histórico.** Abra o card que você arrastou. No Histórico aparecem "criou o card" e "moveu de A Fazer para Em andamento", com data e hora de Brasília.
+8. **Membro.** Entre como o Membro. Em **Minhas** aparece o card dele. No Quadro, cards que não são dele mostram um cadeado e não arrastam.
+9. **Fábrica no celular.** Entre como a pessoa da fábrica no celular. O Quadro mostra só WhatsApp CX. Em **Minhas** aparece o card da Accenture (ela é responsável pelo grupo). Abra o card, use **Mover para → Em revisão**. Tente também arrastar no quadro, segurando o card um instante.
+10. **Pedi a outros.** Como Gestor, **Pedi** mostra o card que você criou para a Accenture, com o status atualizado pela fábrica. O seu próprio card do Ecommerce não aparece ali.
 11. **Etiquetas.** Configurações → Etiquetas → crie uma etiqueta nova e use em um card.
 
 **Fora deste lote:** comentários, anexos, checklist e notificações (Lote 3); lixeira de cards (Lote 4).

@@ -1,7 +1,7 @@
 import "server-only";
 import { groupIdsOf, listCards, listGroups, listLabels, listProjects, listUsers, type CardFilter, type CardSummary, type LabelRef, type ProjectRow } from "@timcontrol/pg";
 import { isOwnCard, todayInSaoPaulo } from "@timcontrol/domain";
-import { can, CARD_TYPES, PRIORITIES, type CardType, type Priority } from "@timcontrol/shared";
+import { can, PRIORITIES, type Priority } from "@timcontrol/shared";
 import { asActor, type Actor } from "./actor";
 
 /** Dados das telas do Kanban: projetos visíveis, pessoas, grupos, etiquetas e cards com o que a pessoa pode fazer em cada um. */
@@ -32,7 +32,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface FilterState {
   projeto: string;
-  tipo: string;
   resp: string;
   prioridade: string;
   etiqueta: string;
@@ -40,17 +39,15 @@ export interface FilterState {
   q: string;
 }
 
-/** Filtros da URL (?projeto=...&tipo=...), sempre validados: valor estranho é ignorado. */
+/** Filtros da URL (?projeto=...&prazo=...), sempre validados: valor estranho é ignorado. */
 export function readFilters(sp: Search): FilterState {
   const projeto = one(sp.projeto);
-  const tipo = one(sp.tipo);
   const resp = one(sp.resp);
   const prioridade = one(sp.prioridade);
   const etiqueta = one(sp.etiqueta);
   const prazo = one(sp.prazo);
   return {
     projeto: UUID.test(projeto) ? projeto : "",
-    tipo: (CARD_TYPES as readonly string[]).includes(tipo) ? tipo : "",
     resp: /^[ug]:[0-9a-f-]{36}$/i.test(resp) || resp === "eu" ? resp : "",
     prioridade: (PRIORITIES as readonly string[]).includes(prioridade) ? prioridade : "",
     etiqueta: UUID.test(etiqueta) ? etiqueta : "",
@@ -62,7 +59,6 @@ export function readFilters(sp: Search): FilterState {
 export function toCardFilter(f: FilterState, actor: Actor, visibleProjectIds: string[], today: string): CardFilter {
   return {
     projectIds: f.projeto ? visibleProjectIds.filter((p) => p === f.projeto) : visibleProjectIds,
-    type: (f.tipo || undefined) as CardType | undefined,
     priority: (f.prioridade || undefined) as Priority | undefined,
     labelId: f.etiqueta || undefined,
     assignee: f.resp && f.resp !== "eu" ? f.resp : undefined,

@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, exists, gte, ilike, inArray, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
-import type { CardStatus, CardType, Priority } from "@timcontrol/shared";
+import type { CardStatus, Priority } from "@timcontrol/shared";
 import type { Tx } from "./client";
 import { cardAssignees, cardHistory, cardLabels, cards, groupMembers, groups, labels, projects, users } from "./schema";
 
@@ -26,15 +26,13 @@ export interface CardSummary {
   projectName: string;
   projectColor: string;
   projectCode: string;
-  type: CardType;
   title: string;
   status: CardStatus;
   position: number;
   priority: Priority;
   dueDate: string | null;
   createdBy: string;
-  requesterId: string | null;
-  requesterName: string | null;
+  createdByName: string;
   updatedAt: Date;
   assignees: AssigneeRef[];
   labels: LabelRef[];
@@ -42,16 +40,13 @@ export interface CardSummary {
 
 export interface CardDetail extends CardSummary {
   description: string;
-  requestedAt: string | null;
   externalRef: string;
-  createdByName: string;
   createdAt: Date;
   completedAt: Date | null;
 }
 
 export interface CardFilter {
   projectIds?: string[];
-  type?: CardType;
   status?: CardStatus;
   priority?: Priority;
   labelId?: string;
@@ -59,7 +54,7 @@ export interface CardFilter {
   assignee?: string;
   /** Responsável é a pessoa, direto ou por um grupo dela. */
   assignedTo?: string;
-  /** Solicitações pedidas por esta pessoa. */
+  /** "Pedi a outros": cards criados pela pessoa para outra pessoa ou para um grupo. */
   requestedBy?: string;
   /** Prazo: atrasados (antes de hoje e não concluídos) ou nos próximos 7 dias. */
   due?: { kind: "overdue" | "week"; today: string };
@@ -78,7 +73,6 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
     if (!f.projectIds.length) return [];
     where.push(inArray(cards.projectId, f.projectIds));
   }
-  if (f.type) where.push(eq(cards.type, f.type));
   if (f.status) where.push(eq(cards.status, f.status));
   if (f.priority) where.push(eq(cards.priority, f.priority));
   if (f.includeDone === false) where.push(ne(cards.status, "done"));
@@ -89,7 +83,13 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
     else where.push(exists(sql`(select 1 from ${cardAssignees} a where a.card_id = ${cards.id} and a.group_id = ${id})`));
   }
   if (f.assignedTo) where.push(assignedToUser(f.assignedTo));
-  if (f.requestedBy) where.push(and(eq(cards.type, "request"), eq(cards.requesterId, f.requestedBy))!);
+  if (f.requestedBy)
+    where.push(
+      and(
+        eq(cards.createdBy, f.requestedBy),
+        exists(sql`(select 1 from ${cardAssignees} a where a.card_id = ${cards.id} and (a.group_id is not null or a.user_id <> ${f.requestedBy}))`),
+      )!,
+    );
   if (f.due?.kind === "overdue") where.push(and(lt(cards.dueDate, f.due.today), ne(cards.status, "done"))!);
   if (f.due?.kind === "week") {
     const end = sql`(${f.due.today}::date + 7)`;
@@ -116,20 +116,18 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
       projectName: projects.name,
       projectColor: projects.color,
       projectCode: projects.code,
-      type: cards.type,
       title: cards.title,
       status: cards.status,
       position: cards.position,
       priority: cards.priority,
       dueDate: cards.dueDate,
       createdBy: cards.createdBy,
-      requesterId: cards.requesterId,
-      requesterName: users.name,
+      createdByName: sql<string>`coalesce(${users.name}, '—')`,
       updatedAt: cards.updatedAt,
     })
     .from(cards)
     .innerJoin(projects, eq(projects.id, cards.projectId))
-    .leftJoin(users, eq(users.id, cards.requesterId))
+    .leftJoin(users, eq(users.id, cards.createdBy))
     .where(where.length ? and(...where) : undefined)
     .orderBy(...orderBy)
     .limit(1000);
@@ -163,7 +161,6 @@ async function attach<T extends { id: string }>(tx: Tx, rows: T[]): Promise<(T &
 }
 
 export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
-  const creator = sql<string>`(select u.name from ${users} u where u.id = ${cards.createdBy})`;
   const [row] = await tx
     .select({
       id: cards.id,
@@ -171,7 +168,6 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
       projectName: projects.name,
       projectColor: projects.color,
       projectCode: projects.code,
-      type: cards.type,
       title: cards.title,
       description: cards.description,
       status: cards.status,
@@ -179,10 +175,7 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
       priority: cards.priority,
       dueDate: cards.dueDate,
       createdBy: cards.createdBy,
-      createdByName: creator,
-      requesterId: cards.requesterId,
-      requesterName: users.name,
-      requestedAt: cards.requestedAt,
+      createdByName: sql<string>`coalesce(${users.name}, '—')`,
       externalRef: cards.externalRef,
       completedAt: cards.completedAt,
       createdAt: cards.createdAt,
@@ -190,7 +183,7 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
     })
     .from(cards)
     .innerJoin(projects, eq(projects.id, cards.projectId))
-    .leftJoin(users, eq(users.id, cards.requesterId))
+    .leftJoin(users, eq(users.id, cards.createdBy))
     .where(eq(cards.id, id));
   if (!row) return null;
   const [full] = await attach(tx, [row as Omit<CardDetail, "assignees" | "labels">]);
@@ -199,15 +192,12 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
 
 export interface CardWrite {
   projectId: string;
-  type: CardType;
   title: string;
   description: string;
   status: CardStatus;
   position: number;
   priority: Priority;
   dueDate: string | null;
-  requesterId: string | null;
-  requestedAt: string | null;
   externalRef: string;
 }
 

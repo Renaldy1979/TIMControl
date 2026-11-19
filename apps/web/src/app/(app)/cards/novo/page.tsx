@@ -28,14 +28,13 @@ export default async function NewCardPage({ searchParams }: { searchParams: Prom
   const d = cardFormData(actor, ctx, projects, can(actor.viewer, "kanban.move", { projectId, own: true }));
   return (
     <>
-      <PageHeader title={one(sp.tipo) === "request" ? "Nova solicitação" : "Novo card"} subtitle="Preencha o essencial; o resto pode ser ajustado depois." />
+      <PageHeader title="Novo card" subtitle="Preencha o essencial; o resto pode ser ajustado depois." />
       <Card className="max-w-3xl">
         <NewCardForm
           d={d}
           initial={{
             projectId,
-            type: one(sp.tipo) === "request" ? "request" : "task",
-            assignees: one(sp.tipo) === "request" ? [] : [`u:${actor.user.id}`],
+            assignees: [`u:${actor.user.id}`],
           }}
         />
       </Card>
