@@ -8,7 +8,7 @@ const area = "w-full rounded-md border border-bd bg-sf px-3 py-2 text-[15px] tex
 /** Formulários com valores devolvidos em caso de erro (precisam ser componentes de cliente). */
 export function AddChecklistItemForm({ cardId }: { cardId: string }) {
   return (
-    <ActionForm action={addChecklistItemAction} submit="Incluir item" variant="secondary" hidden={{ cardId }} className="sm:flex-row sm:items-end">
+    <ActionForm action={addChecklistItemAction} submit="Incluir item" variant="secondary" hidden={{ cardId }} inline>
       {(v) => <Field label="Novo item" name="texto" maxLength={200} required defaultValue={v.texto} placeholder="Ex.: Coletar logs do dia" className="flex-1" />}
     </ActionForm>
   );

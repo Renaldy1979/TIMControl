@@ -88,7 +88,7 @@ function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string,
       <fieldset>
         <legend className="mb-1 text-sm font-semibold text-ink2">Responsáveis <span className="font-normal text-ink3">(ao menos um)</span></legend>
         <p className="mb-2 text-xs text-ink3">Para quem é o card: pessoas, grupos ou os dois. Um grupo vale para todas as pessoas dele.</p>
-        <div className="grid max-h-64 gap-x-4 overflow-y-auto rounded-md border border-bd bg-sf p-3 sm:grid-cols-2">
+        <div className="grid max-h-64 gap-x-4 overflow-y-auto rounded-md border border-bd bg-sf p-3 sm:grid-cols-2 desk:grid-cols-3">
           <p className="col-span-full text-xs font-bold uppercase tracking-wide text-ink3">Grupos</p>
           {d.groups.map((g) => (
             <label key={g.id} className="flex min-h-touch cursor-pointer items-center gap-3 text-[15px]">

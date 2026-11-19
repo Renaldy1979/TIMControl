@@ -7,7 +7,7 @@ import { Select } from "../ui/Field";
 /** Mover sem arrastar (teclado, leitor de tela, celular). */
 export function MoveCardForm({ id, status }: { id: string; status: CardStatus }) {
   return (
-    <ActionForm action={moveCardFormAction} submit="Mover" variant="secondary" hidden={{ id }} className="sm:flex-row sm:items-end">
+    <ActionForm action={moveCardFormAction} submit="Mover" variant="secondary" hidden={{ id }} inline>
       <Select key={status} label="Mover para" name="status" defaultValue={status} className="sm:min-w-[220px]">
         {CARD_STATUSES.map((s) => (
           <option key={s} value={s}>
