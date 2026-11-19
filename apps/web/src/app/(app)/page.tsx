@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { listCards } from "@timcontrol/pg";
+import { dashboardCounts, listCards } from "@timcontrol/pg";
 import { profileFor } from "@timcontrol/shared";
 import { Card, PageHeader, ProjectChip } from "@/components/ui/Card";
 import { CardList } from "@/components/kanban/CardList";
@@ -13,11 +13,18 @@ export default async function HomePage() {
   const actor = await requireActor();
   const ctx = await kanbanContext(actor);
   const ids = ctx.projects.map((p) => p.id);
-  const [open, mine, overdue] = await Promise.all([
+  const [open, mine, overdue, counts] = await Promise.all([
     asActor(actor, (tx) => listCards(tx, { projectIds: ids, includeDone: false })),
     loadCards(actor, ctx, { projectIds: ids, assignedTo: actor.user.id, includeDone: false }, "due"),
     asActor(actor, (tx) => listCards(tx, { projectIds: ids, due: { kind: "overdue", today: ctx.today } })),
+    asActor(actor, (tx) => dashboardCounts(tx, ids, actor.user.id, ctx.today)),
   ]);
+  const stats = [
+    { label: "Com você", value: counts.mine, href: "/minhas", tone: "text-br-2" },
+    { label: "Atrasados", value: counts.overdue, href: "/quadro?prazo=atrasados", tone: counts.overdue ? "text-danger" : "text-ink" },
+    { label: "Vencem em 7 dias", value: counts.week, href: "/quadro?prazo=semana", tone: "text-ink" },
+    { label: "Concluídos na semana", value: counts.doneWeek, href: "/quadro?vista=lista&ordem=atualizados", tone: "text-ink" },
+  ];
   const first = actor.user.name.split(/\s+/)[0];
   return (
     <>
@@ -28,6 +35,18 @@ export default async function HomePage() {
         </Card>
       ) : (
         <div className="flex flex-col gap-8">
+          <section aria-label="Contadores">
+            <ul className="grid grid-cols-2 gap-3 desk:grid-cols-4">
+              {stats.map((s) => (
+                <li key={s.label}>
+                  <Link href={s.href} className="flex h-full flex-col gap-1 rounded-lg bg-sf p-4 shadow-sm transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-br">
+                    <span className={`text-3xl font-bold ${s.tone}`}>{s.value}</span>
+                    <span className="text-sm font-semibold text-ink2">{s.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
           <ul className="grid gap-4 sm:grid-cols-2 wide:grid-cols-3">
             {ctx.projects.map((p) => {
               const n = open.filter((c) => c.projectId === p.id).length;

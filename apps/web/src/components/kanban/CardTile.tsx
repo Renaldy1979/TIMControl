@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarClock, Lock, Users } from "lucide-react";
 import { DUE_LABELS, dueState, formatDateBR } from "@timcontrol/domain";
+import { ChecklistProgress } from "../collab/ChecklistProgress";
 import { PRIORITY_LABELS, type Priority } from "@timcontrol/shared";
 import type { CardSummary } from "@timcontrol/pg";
 import { cx } from "../ui/cx";
@@ -98,6 +99,7 @@ export function CardTile({ card, today, showProject, dragging }: { card: CardSum
           ))}
         </ul>
       )}
+      {card.checklist.total > 0 && <ChecklistProgress done={card.checklist.done} total={card.checklist.total} compact />}
       <div className="flex items-center justify-between gap-2">
         <DueLabel dueDate={card.dueDate} status={card.status} today={today} />
         <span className="ml-auto">

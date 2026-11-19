@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigserial, boolean, check, date, doublePrecision, index, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, check, date, doublePrecision, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Modelo de dados do Lote 1 (docs/02-banco-de-dados.md é a fonte da verdade).
@@ -248,4 +248,99 @@ export const cardHistory = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("card_history_card_ix").on(t.cardId, t.createdAt)],
+);
+
+// ======================= Lote 3: Colaboração =======================
+
+/** Item do checklist do card. */
+export const checklistItems = pgTable(
+  "checklist_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    done: boolean("done").notNull().default(false),
+    position: doublePrecision("position").notNull().default(0),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    doneBy: uuid("done_by").references(() => users.id, { onDelete: "set null" }),
+    doneAt: timestamp("done_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("checklist_items_card_ix").on(t.cardId, t.position)],
+);
+
+/** Comentário no card (texto simples). */
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id),
+    body: text("body").notNull(),
+    createdAt: createdAt(),
+    editedAt: timestamp("edited_at", { withTimezone: true }),
+  },
+  (t) => [index("comments_card_ix").on(t.cardId, t.createdAt)],
+);
+
+/** Pessoas mencionadas num comentário (escolhidas numa lista). */
+export const commentMentions = pgTable(
+  "comment_mentions",
+  {
+    commentId: uuid("comment_id")
+      .notNull()
+      .references(() => comments.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.commentId, t.userId] })],
+);
+
+/** Anexo do card: o arquivo fica no bucket privado do Appwrite; aqui só os dados. */
+export const attachments = pgTable(
+  "attachments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    fileId: text("file_id").notNull(),
+    name: text("name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    size: integer("size").notNull(),
+    uploadedBy: uuid("uploaded_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("attachments_card_ix").on(t.cardId, t.createdAt), uniqueIndex("attachments_file_ux").on(t.fileId)],
+);
+
+/** Aviso interno (sininho). Não guarda o título: a tela lê o card com o RLS de quem recebe. */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
+    details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("notifications_user_ix").on(t.userId, t.createdAt), check("notifications_kind_ck", sql`${t.kind} in ('assigned','mentioned','commented','moved')`)],
 );

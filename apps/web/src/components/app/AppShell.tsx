@@ -1,9 +1,10 @@
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { Bell, LogOut } from "lucide-react";
 import { signOut } from "@/server/actions/auth";
 import { BottomNav, SideNav, type NavItem } from "./NavLinks";
 
 /** Moldura do portal: menu lateral escuro (computador), barra inferior (celular) e topo com a pessoa logada. */
-export function AppShell({ userName, profileName, showAdmin, children }: { userName: string; profileName: string; showAdmin: boolean; children: React.ReactNode }) {
+export function AppShell({ userName, profileName, showAdmin, unread = 0, children }: { userName: string; profileName: string; showAdmin: boolean; unread?: number; children: React.ReactNode }) {
   const items: NavItem[] = [
     { href: "/", label: "Início", icon: "home" },
     { href: "/quadro", label: "Quadro", icon: "board" },
@@ -38,7 +39,20 @@ export function AppShell({ userName, profileName, showAdmin, children }: { userN
           </div>
           <span className="hidden text-lg font-bold desk:block">TIMControl</span>
           <div className="flex items-center gap-3">
-            <div className="text-right leading-tight">
+            <Link
+              href="/notificacoes"
+              aria-label={unread > 0 ? `Notificações: ${unread} não lida${unread > 1 ? "s" : ""}` : "Notificações"}
+              title="Notificações"
+              className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink2 hover:bg-sf"
+            >
+              <Bell size={22} aria-hidden />
+              {unread > 0 && (
+                <span aria-hidden className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-pill bg-danger px-1 text-[11px] font-bold text-white">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </Link>
+            <div className="hidden text-right leading-tight sm:block">
               <p className="text-sm font-semibold text-ink">{userName}</p>
               <p className="text-xs text-ink3">{profileName}</p>
             </div>

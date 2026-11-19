@@ -53,7 +53,8 @@ const nextConfig: NextConfig = {
   ...(process.env["NEXT_OUTPUT"] === "standalone" ? { output: "standalone" as const, outputFileTracingRoot: path.resolve(process.cwd(), "../..") } : {}),
   transpilePackages: ["@timcontrol/shared", "@timcontrol/pg", "@timcontrol/domain"],
   serverExternalPackages: ["node-appwrite"],
-  experimental: { serverActions: { bodySizeLimit: "2mb" } },
+  // Anexos de até 10 MB (Lote 3) sobem por Server Action; o limite fica um pouco acima para caber o resto do formulário.
+  experimental: { serverActions: { bodySizeLimit: "11mb" } },
 };
 
 export default nextConfig;

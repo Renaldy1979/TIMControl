@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, exists, gte, ilike, inArray, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import type { CardStatus, Priority } from "@timcontrol/shared";
 import type { Tx } from "./client";
+import { checklistCounts } from "./collab";
 import { cardAssignees, cardHistory, cardLabels, cards, groupMembers, groups, labels, projects, users } from "./schema";
 
 /**
@@ -36,6 +37,8 @@ export interface CardSummary {
   updatedAt: Date;
   assignees: AssigneeRef[];
   labels: LabelRef[];
+  /** Progresso do checklist (Lote 3); total 0 = sem checklist. */
+  checklist: { done: number; total: number };
 }
 
 export interface CardDetail extends CardSummary {
@@ -132,10 +135,10 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
     .orderBy(...orderBy)
     .limit(1000);
 
-  return attach(tx, rows as Omit<CardSummary, "assignees" | "labels">[]);
+  return attach(tx, rows as Omit<CardSummary, "assignees" | "labels" | "checklist">[]);
 }
 
-async function attach<T extends { id: string }>(tx: Tx, rows: T[]): Promise<(T & { assignees: AssigneeRef[]; labels: LabelRef[] })[]> {
+async function attach<T extends { id: string }>(tx: Tx, rows: T[]): Promise<(T & { assignees: AssigneeRef[]; labels: LabelRef[]; checklist: { done: number; total: number } })[]> {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const asg = await tx
@@ -150,6 +153,7 @@ async function attach<T extends { id: string }>(tx: Tx, rows: T[]): Promise<(T &
     .innerJoin(labels, eq(labels.id, cardLabels.labelId))
     .where(inArray(cardLabels.cardId, ids))
     .orderBy(asc(labels.name));
+  const progress = await checklistCounts(tx, ids);
   return rows.map((r) => ({
     ...r,
     assignees: asg
@@ -157,6 +161,7 @@ async function attach<T extends { id: string }>(tx: Tx, rows: T[]): Promise<(T &
       .map((a): AssigneeRef => (a.userId ? { kind: "user", id: a.userId, name: a.userName ?? "" } : { kind: "group", id: a.groupId!, name: a.groupName ?? "" }))
       .sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name, "pt-BR") : a.kind === "user" ? -1 : 1)),
     labels: lbl.filter((l) => l.cardId === r.id).map(({ id, name, color }) => ({ id, name, color })),
+    checklist: progress.get(r.id) ?? { done: 0, total: 0 },
   }));
 }
 
@@ -186,7 +191,7 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
     .leftJoin(users, eq(users.id, cards.createdBy))
     .where(eq(cards.id, id));
   if (!row) return null;
-  const [full] = await attach(tx, [row as Omit<CardDetail, "assignees" | "labels">]);
+  const [full] = await attach(tx, [row as Omit<CardDetail, "assignees" | "labels" | "checklist">]);
   return full as CardDetail;
 }
 

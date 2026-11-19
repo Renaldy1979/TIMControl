@@ -24,7 +24,15 @@
 **Precisa do dono:** depois do deploy, rodar a migração (passo 5 do `docs/09-deploy.md`).
 
 ## Lote 3 — Colaboração e visual
-Comentários com menção, anexos no Appwrite Storage (bucket privado), checklist com barra de progresso, notificações internas, painel de contadores e instalação como app (PWA).
+**Você testa:** comentar e mencionar alguém, montar um checklist, anexar um print e baixá-lo, ver o sininho de quem foi avisado, conferir os contadores do Início e instalar o TIMControl no celular. Roteiro: `docs/lotes/L3-roteiro.md`.
+- Comentários no card, com menção a pessoas (aviso para quem foi mencionado).
+- Checklist no card, com barra de progresso também no quadro.
+- Anexos e prints no bucket privado do Appwrite: sem link público, download só pelo portal e registrado no `audit_log`.
+- Notificações internas (sininho): responsável novo, menção, comentário e card movido.
+- Painel de contadores no Início.
+- Instalar como app no celular e no computador (PWA).
+
+**Precisa do dono:** criar o bucket `anexos` no Appwrite, dar os escopos de arquivos à chave de API e cadastrar `APPWRITE_BUCKET_ID` no EasyPanel (passo 1.6 do `docs/09-deploy.md`); depois do deploy, rodar a migração.
 
 ## Lote 4 — Estabilização
 Backup criptografado do Postgres (R2), restauração testada, testes de ponta a ponta, lixeira de cards e ajustes pedidos pelo time.

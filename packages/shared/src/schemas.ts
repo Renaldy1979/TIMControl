@@ -63,3 +63,30 @@ export const labelSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome da etiqueta.").max(30, "Nome longo demais."),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
 });
+
+// ---------- Colaboração (Lote 3) ----------
+
+export const commentSchema = z.object({
+  body: z.string().trim().min(1, "Escreva o comentário.").max(5000, "Comentário longo demais (até 5.000 caracteres)."),
+  /** Pessoas a avisar (menção), escolhidas na lista. */
+  mentionIds: z.array(uuid).max(30, "Mencione no máximo 30 pessoas.").default([]),
+});
+export type CommentInput = z.infer<typeof commentSchema>;
+
+export const checklistItemSchema = z.object({
+  text: z.string().trim().min(1, "Escreva o item.").max(200, "Item longo demais (até 200 caracteres)."),
+});
+
+/** Anexos: até 10 MB, só estes tipos (os mesmos do bucket no Appwrite, docs/09 passo 1.6). */
+export const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+export const ATTACHMENT_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "pdf", "txt", "csv", "log", "json", "xlsx", "xls", "docx", "doc", "pptx", "zip"] as const;
+
+/** Confere nome e tamanho do arquivo; devolve a mensagem de erro em pt-BR ou null. */
+export function attachmentProblem(name: string, size: number): string | null {
+  if (!name || size <= 0) return "Escolha um arquivo.";
+  if (size > ATTACHMENT_MAX_BYTES) return "O arquivo passa de 10 MB.";
+  const ext = name.toLowerCase().split(".").pop() ?? "";
+  if (!name.includes(".") || !(ATTACHMENT_EXTENSIONS as readonly string[]).includes(ext)) return "Tipo de arquivo não aceito. Use imagem, PDF, texto, planilha, documento ou zip.";
+  if (name.length > 200) return "Nome do arquivo longo demais.";
+  return null;
+}
