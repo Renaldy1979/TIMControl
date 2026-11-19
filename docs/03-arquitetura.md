@@ -19,7 +19,7 @@ GitHub (TIMControl) ──► EasyPanel constrói o Dockerfile da raiz a cada pu
 `/configuracao-inicial` só existe enquanto não há nenhuma pessoa cadastrada e exige o `SETUP_CODE` do ambiente. Cria o Gestor no Appwrite e no Postgres, mais os perfis, os 3 projetos e os 3 grupos iniciais (`seedInitialData`).
 
 ## Convite
-1. O Gestor cadastra nome, e-mail, perfil geral e, se quiser, projetos liberados com um perfil.
+1. O Gestor cadastra nome, e-mail, perfil geral e, se quiser, projetos liberados com um perfil. O e-mail sai pelo SMTP da Brevo configurado no Appwrite (docs/09, 1.2); o TIMControl não fala com SMTP.
 2. O servidor cria a pessoa como `invited`, gera um token (só o hash vai para o banco, vale 7 dias) e pede ao Appwrite um **Magic URL** para `/aceitar-convite?t=<token>`.
 3. A pessoa abre o link, cria a senha e entra. O servidor confere o token, troca o Magic URL por sessão, confere se o e-mail é o mesmo, grava a senha no Appwrite e ativa a pessoa.
 

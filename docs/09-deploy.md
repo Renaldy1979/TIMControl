@@ -21,8 +21,31 @@ Anote três segredos novos (24 letras e números, **sem símbolos**, que quebram
 ### 1.1 Plataforma web
 **Overview → Integrations → Platforms → Add platform → Web**. Hostname = o ENDEREÇO, sem `https://` e sem barra. Sem isto, os e-mails de convite e de senha falham com "URL host must be one of…".
 
-### 1.2 SMTP
-Se a instância já envia e-mails para os outros projetos, só confira em **Settings → SMTP → Send test email**.
+### 1.2 SMTP (Brevo)
+Os e-mails de convite e de recuperação de senha são enviados **pelo Appwrite**, não pelo TIMControl. Por isso o código não muda e o app não precisa de nenhuma variável de SMTP: tudo se configura no Appwrite, usando o **SMTP da Brevo** com o **domínio da VPS** como remetente.
+
+**Na Brevo** (uma vez):
+1. **Senders, Domains & Dedicated IPs → Domains → Add a domain**: informe o domínio da VPS. A Brevo mostra os registros DNS (código Brevo, **DKIM** e **DMARC**). Cadastre-os no DNS do domínio (painel da Hostinger) e clique em **Authenticate**. Sem isso os e-mails tendem a cair no spam.
+2. Se o domínio já tem um registro **SPF** (`v=spf1 ...`), inclua `include:spf.brevo.com` nele em vez de criar um segundo SPF.
+3. **Senders → Add a sender**: crie o remetente, por exemplo `nao-responda@SEU-DOMINIO`, com nome **TIMControl**.
+4. **SMTP & API → SMTP**: anote o **servidor** (`smtp-relay.brevo.com`), a **porta** (`587`), o **login** (algo como `xxxx@smtp-brevo.com`) e gere uma **SMTP key**. Atenção: é a *SMTP key*, não a *API key*.
+
+**No Appwrite**, projeto **TIMControl** → **Settings → SMTP**: ligue o *custom SMTP* e preencha:
+
+| Campo | Valor |
+|---|---|
+| Sender name | TIMControl |
+| Sender email | o remetente criado no passo 3 |
+| Reply to | (opcional) seu e-mail |
+| Server host | `smtp-relay.brevo.com` |
+| Server port | `587` |
+| Username | o login SMTP da Brevo |
+| Password | a SMTP key |
+| Secure protocol | TLS |
+
+Salve e use **Send test email**. Se a sua instância não mostrar SMTP por projeto, a mesma configuração vai nas variáveis `_APP_SMTP_*` do Appwrite (`_APP_SMTP_HOST`, `_APP_SMTP_PORT=587`, `_APP_SMTP_SECURE=tls`, `_APP_SMTP_USERNAME`, `_APP_SMTP_PASSWORD`, `_APP_SYSTEM_EMAIL_ADDRESS`, `_APP_SYSTEM_EMAIL_NAME`), mas isso vale para todos os projetos da instância.
+
+O plano gratuito da Brevo envia até 300 e-mails por dia, o que sobra para 10 pessoas.
 
 ### 1.3 Métodos de login
 **Auth → Settings**: deixe ligados **Email/Password** e **Magic URL** (o convite usa o Magic URL). Sugestão: sessão de 30 dias e *Password dictionary* ligado. Desligue o cadastro aberto se a sua versão oferecer a opção: quem entra é sempre convidado.
@@ -120,7 +143,8 @@ Cada merge na `main` vira um deploy (ligue **Auto Deploy** no EasyPanel, ou cliq
 | Sintoma | Causa provável |
 |---|---|
 | "URL host must be one of…" ao convidar | hostname não cadastrado como plataforma Web (1.1) |
-| Convite não chega | SMTP do Appwrite (1.2) ou spam; o Gestor pode reenviar em Usuários |
+| Convite não chega | SMTP da Brevo no Appwrite (1.2): rode *Send test email*, confira o domínio autenticado e o remetente na Brevo, e olhe o spam. O Gestor pode reenviar em Usuários |
+| E-mail cai no spam | DKIM/DMARC da Brevo não cadastrados no DNS, ou dois registros SPF no domínio (1.2) |
 | `/api/health` com `db:false` | `DATABASE_URL` errada ou papéis não criados (3) |
 | "Configuração inicial fechada" | `SETUP_CODE` ausente ou com menos de 12 caracteres |
 | Pessoa entra e volta para o login | ela está desativada ou ainda não aceitou o convite |
