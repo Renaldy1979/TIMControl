@@ -1,4 +1,4 @@
-import type { Feature, Scope, UserState } from "./enums";
+import type { CardStatus, CardType, Feature, MeetingKind, Priority, Scope, UserState } from "./enums";
 
 /** Textos da interface (pt-BR). Código e chaves ficam em inglês. */
 export const FEATURE_LABELS: Record<Feature, string> = {
@@ -35,3 +35,16 @@ export const USER_STATE_LABELS: Record<UserState, string> = {
   active: "Ativo",
   disabled: "Desativado",
 };
+
+export const STATUS_LABELS: Record<CardStatus, string> = {
+  todo: "A Fazer",
+  doing: "Em andamento",
+  review: "Em revisão",
+  done: "Concluído",
+};
+
+export const TYPE_LABELS: Record<CardType, string> = { task: "Tarefa", request: "Solicitação" };
+
+export const PRIORITY_LABELS: Record<Priority, string> = { low: "Baixa", normal: "Normal", high: "Alta", urgent: "Urgente" };
+
+export const MEETING_KIND_LABELS: Record<MeetingKind, string> = { meeting: "Reunião", warroom: "WarRoom" };

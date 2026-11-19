@@ -4,6 +4,7 @@ import { MyNameForm } from "@/components/forms/AccountForms";
 import { buttonClass } from "@/components/ui/Button";
 import { requireActor } from "@/server/actor";
 import { signOut } from "@/server/actions/auth";
+import { adminSectionsFor } from "@/lib/admin";
 
 export const metadata = { title: "Minha conta" };
 
@@ -18,6 +19,11 @@ export default async function AccountPage() {
         </Card>
         <Card className="flex flex-col gap-3">
           <p className="text-sm text-ink2">Perfil geral: {actor.viewer.globalProfile.name}</p>
+          {adminSectionsFor(actor.viewer).length > 0 && (
+            <Link href="/configuracoes" className={buttonClass("secondary", "self-start desk:hidden")}>
+              Configurações
+            </Link>
+          )}
           <Link href="/esqueci-senha" className={buttonClass("secondary", "self-start")}>
             Trocar senha
           </Link>

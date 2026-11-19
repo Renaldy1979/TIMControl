@@ -28,3 +28,10 @@ Marca `disabled` no Postgres, bloqueia o login no Appwrite e derruba todas as se
 
 ## Permissões
 `can(viewer, "kanban.edit", { projectId, own })` em `packages/shared`. Server Actions chamam `requirePermission`; o banco repete a regra no RLS.
+
+## Kanban (Lote 2)
+- Telas: `/quadro` (visão geral; `?projeto=` vira o quadro do projeto; `?vista=lista` vira lista), `/cards/novo`, `/cards/[id]`, `/minhas`, `/pedi`, `/reunioes`, `/reunioes/nova`, `/reunioes/[id]` e `/configuracoes/etiquetas`.
+- Filtros ficam na URL (formulário GET): funcionam sem JavaScript e o link pode ser compartilhado. Valores estranhos são ignorados (`readFilters`).
+- Arrastar e soltar: `@dnd-kit` no navegador (mouse, toque segurando um instante e teclado). Ao soltar, a tela já mostra o card no lugar e chama `moveCardAction` com a coluna e o card que ficou logo abaixo; se o servidor recusar, o card volta e aparece o motivo. A posição nova é calculada em `dropPosition` (`packages/domain`).
+- Cada ação confere a permissão com `can()` e o "é meu" (`isOwnCard`: criou ou é responsável, direto ou por grupo) antes de gravar; o RLS confere de novo no banco.
+- O histórico é gravado na mesma transação da alteração.

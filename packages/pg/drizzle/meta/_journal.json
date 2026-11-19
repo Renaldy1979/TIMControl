@@ -29,6 +29,20 @@
       "when": 1795101028601,
       "tag": "0003_remove_tower",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795102543418,
+      "tag": "0004_kanban",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795102544283,
+      "tag": "0005_kanban_rls",
+      "breakpoints": true
     }
   ]
 }

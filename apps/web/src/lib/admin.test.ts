@@ -7,8 +7,8 @@ const viewer = (key: "gestor" | "membro" | "visitante"): Viewer => {
 };
 
 describe("menu de Configurações", () => {
-  it("Gestor vê as 4 seções; Membro e Visitante, nenhuma", () => {
-    expect(adminSectionsFor(viewer("gestor"))).toHaveLength(4);
+  it("Gestor vê as 5 seções; Membro e Visitante, nenhuma", () => {
+    expect(adminSectionsFor(viewer("gestor"))).toHaveLength(5);
     expect(adminSectionsFor(viewer("membro"))).toHaveLength(0);
     expect(adminSectionsFor(viewer("visitante"))).toHaveLength(0);
   });
