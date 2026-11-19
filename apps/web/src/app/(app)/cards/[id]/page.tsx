@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardHistoryOf, getCard } from "@timcontrol/pg";
-import { describeHistory, formatDateBR, formatDateTimeBR, isOwnCard } from "@timcontrol/domain";
-import { can, STATUS_LABELS, TYPE_LABELS } from "@timcontrol/shared";
+import { describeHistory, formatDateTimeBR, isOwnCard } from "@timcontrol/domain";
+import { can, STATUS_LABELS } from "@timcontrol/shared";
 import { EditCardForm } from "@/components/forms/CardForm";
 import { DeleteCardForm, MoveCardForm } from "@/components/forms/CardActions";
 import { Assignees, DueLabel, PriorityBadge } from "@/components/kanban/CardTile";
@@ -45,7 +45,6 @@ export default async function CardPage({ params, searchParams }: { params: Promi
         <div className="flex flex-wrap items-center gap-2">
           <ProjectChip name={card.projectName} color={card.projectColor} />
           <span className="rounded-pill bg-sf2 px-3 py-1 text-xs font-semibold text-ink2">{STATUS_LABELS[card.status]}</span>
-          <span className="rounded-pill bg-br-soft px-3 py-1 text-xs font-semibold text-br-2">{TYPE_LABELS[card.type]}</span>
           <PriorityBadge p={card.priority} />
           {card.labels.map((l) => (
             <span key={l.id} className="rounded-sm px-2 py-0.5 text-xs font-semibold" style={{ color: l.color, backgroundColor: `${l.color}1A` }}>
@@ -64,18 +63,9 @@ export default async function CardPage({ params, searchParams }: { params: Promi
             </dd>
           </div>
           <div>
-            <dt className="font-semibold text-ink3">{card.type === "request" ? "Prazo combinado" : "Prazo"}</dt>
+            <dt className="font-semibold text-ink3">Prazo</dt>
             <dd className="mt-1">{card.dueDate ? <DueLabel dueDate={card.dueDate} status={card.status} today={ctx.today} /> : <span className="text-ink3">Sem prazo</span>}</dd>
           </div>
-          {card.type === "request" && (
-            <div>
-              <dt className="font-semibold text-ink3">Solicitante</dt>
-              <dd className="mt-1 text-ink2">
-                {card.requesterName ?? "—"}
-                {card.requestedAt && ` · pedido em ${formatDateBR(card.requestedAt)}`}
-              </dd>
-            </div>
-          )}
           {card.externalRef && (
             <div>
               <dt className="font-semibold text-ink3">Referência externa</dt>
@@ -107,7 +97,6 @@ export default async function CardPage({ params, searchParams }: { params: Promi
               card={{
                 id: card.id,
                 projectId: card.projectId,
-                type: card.type,
                 title: card.title,
                 description: card.description,
                 status: card.status,
@@ -115,8 +104,6 @@ export default async function CardPage({ params, searchParams }: { params: Promi
                 dueDate: card.dueDate,
                 assignees: card.assignees.map((a) => `${a.kind === "user" ? "u" : "g"}:${a.id}`),
                 labelIds: card.labels.map((l) => l.id),
-                requesterId: card.requesterId,
-                requestedAt: card.requestedAt,
                 externalRef: card.externalRef,
               }}
             />

@@ -159,7 +159,7 @@ export const auditLog = pgTable(
 
 const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
 
-/** Card do quadro: Tarefa do time ou Solicitação. Colunas fixas em `status`; ordem na coluna em `position`. */
+/** Card do quadro: uma tarefa sempre com responsável (pessoa ou grupo). Colunas fixas em `status`; ordem na coluna em `position`. */
 export const cards = pgTable(
   "cards",
   {
@@ -167,7 +167,6 @@ export const cards = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    type: text("type").notNull(),
     title: text("title").notNull(),
     description: text("description").notNull().default(""),
     status: text("status").notNull().default("todo"),
@@ -177,9 +176,6 @@ export const cards = pgTable(
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id),
-    /** Solicitação: quem pediu (pode ser outra pessoa, ex.: o gerente). */
-    requesterId: uuid("requester_id").references(() => users.id, { onDelete: "set null" }),
-    requestedAt: date("requested_at"),
     /** Número de bug/chamado em outra ferramenta, só como texto. */
     externalRef: text("external_ref").notNull().default(""),
     completedAt: timestamp("completed_at", { withTimezone: true }),
@@ -188,8 +184,6 @@ export const cards = pgTable(
   },
   (t) => [
     index("cards_board_ix").on(t.projectId, t.status, t.position),
-    index("cards_requester_ix").on(t.requesterId),
-    check("cards_type_ck", sql`${t.type} in ('task','request')`),
     check("cards_status_ck", sql`${t.status} in ('todo','doing','review','done')`),
     check("cards_priority_ck", sql`${t.priority} in ('low','normal','high','urgent')`),
   ],

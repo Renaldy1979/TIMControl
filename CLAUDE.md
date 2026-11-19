@@ -1,6 +1,6 @@
 # TIMControl — guia para qualquer agente Claude
 
-Sistema departamental da área de Dev Ops (TIM). Primeiro módulo: **Kanban** de atividades do time e de **solicitações** entre pessoas, grupos e fábricas (Accenture, Engineering), principalmente as que saem das reuniões e WarRooms e hoje se perdem no e-mail. **Não** é ferramenta de bug nem de chamados (a TIM já tem as oficiais). Dono e único desenvolvedor: Renaldy, com apoio do Claude.
+Sistema departamental da área de Dev Ops (TIM). Primeiro módulo: **Kanban** de atividades, cada card uma tarefa para pessoas ou grupos (time, fábricas Accenture e Engineering), principalmente as que saem das reuniões e WarRooms e hoje se perdem no e-mail. **Não** é ferramenta de bug nem de chamados (a TIM já tem as oficiais). Dono e único desenvolvedor: Renaldy, com apoio do Claude.
 
 ## Leia antes de qualquer tarefa
 1. `docs/01-visao-e-requisitos.md` — o que construir e por quê (escopo v1)

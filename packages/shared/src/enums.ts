@@ -34,9 +34,6 @@ export type PermissionKey = `${Feature}.${string}`;
 export const CARD_STATUSES = ["todo", "doing", "review", "done"] as const;
 export type CardStatus = (typeof CARD_STATUSES)[number];
 
-/** Tarefa do time ou Solicitação (pedido de alguém para alguém, inclusive às fábricas). */
-export const CARD_TYPES = ["task", "request"] as const;
-export type CardType = (typeof CARD_TYPES)[number];
 
 export const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 export type Priority = (typeof PRIORITIES)[number];

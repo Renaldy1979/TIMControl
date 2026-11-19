@@ -7,7 +7,7 @@ import {
   listGroups, listLabels, listUsers, renumberColumn, setCardAssignees, setCardLabels, updateCardFields, updateLabel,
   type CardDetail, type Tx,
 } from "@timcontrol/pg";
-import { changedFields, dropPosition, isOwnCard, todayInSaoPaulo, type CardSnapshot } from "@timcontrol/domain";
+import { changedFields, dropPosition, isOwnCard, type CardSnapshot } from "@timcontrol/domain";
 import { can, CARD_STATUSES, cardSchema, labelSchema, type CardStatus, type PermissionKey } from "@timcontrol/shared";
 import { asActor, requireActor, requirePermission, type Actor } from "../actor";
 import { ForbiddenError, isUniqueViolation, UserError } from "../errors";
@@ -31,7 +31,6 @@ const isRedirect = (e: unknown) => typeof (e as { digest?: unknown })?.digest ==
 function readCard(form: FormData) {
   const raw = {
     projectId: fd(form, "projeto"),
-    type: fd(form, "tipo"),
     title: fd(form, "titulo"),
     description: fd(form, "descricao"),
     status: fd(form, "status") || "todo",
@@ -39,8 +38,6 @@ function readCard(form: FormData) {
     dueDate: fd(form, "prazo"),
     assignees: form.getAll("responsaveis").map(String),
     labelIds: form.getAll("etiquetas").map(String),
-    requesterId: fd(form, "solicitante") || null,
-    requestedAt: fd(form, "pedidoEm"),
     externalRef: fd(form, "referencia"),
   };
   const p = cardSchema.safeParse(raw);
@@ -55,15 +52,14 @@ const echo = (form: FormData): Record<string, string> => {
   return out;
 };
 
-/** Responsáveis precisam ser pessoas ativas ou grupos ativos; solicitante, pessoa ativa. */
-async function checkPeople(tx: Tx, assignees: string[], requesterId: string | null) {
+/** Responsáveis precisam ser pessoas ativas ou grupos ativos. */
+async function checkPeople(tx: Tx, assignees: string[]) {
   const users = new Set((await listUsers(tx)).filter((u) => u.state === "active").map((u) => u.id));
   const groups = new Set((await listGroups(tx)).filter((g) => g.active).map((g) => g.id));
   for (const a of assignees) {
     const [k, id] = a.split(":");
     if (k === "u" ? !users.has(id!) : !groups.has(id!)) throw new UserError("Um dos responsáveis não está mais disponível. Confira a lista.");
   }
-  if (requesterId && !users.has(requesterId)) throw new UserError("Escolha um solicitante válido.");
 }
 
 async function checkLabels(tx: Tx, labelIds: string[]) {
@@ -81,12 +77,9 @@ async function endOfColumn(tx: Tx, projectId: string, status: CardStatus): Promi
 const snapshot = (c: CardDetail): CardSnapshot => ({
   title: c.title,
   description: c.description,
-  type: c.type,
   priority: c.priority,
   dueDate: c.dueDate,
   projectId: c.projectId,
-  requesterId: c.requesterId,
-  requestedAt: c.requestedAt,
   externalRef: c.externalRef,
   assignees: c.assignees.map((a) => `${a.kind === "user" ? "u" : "g"}:${a.id}`),
   labelIds: c.labels.map((l) => l.id),
@@ -117,20 +110,16 @@ export async function createCardAction(_: FormState, form: FormData): Promise<Fo
     need(actor, "kanban.create", c.projectId);
     if (c.status !== "todo") need(actor, "kanban.move", c.projectId, true);
     id = await asActor(actor, async (tx) => {
-      await checkPeople(tx, c.assignees, c.requesterId);
+      await checkPeople(tx, c.assignees);
       await checkLabels(tx, c.labelIds);
-      const isRequest = c.type === "request";
       const newId = await insertCard(tx, actor.user.id, {
         projectId: c.projectId,
-        type: c.type,
         title: c.title,
         description: c.description,
         status: c.status,
         position: await endOfColumn(tx, c.projectId, c.status),
         priority: c.priority,
         dueDate: c.dueDate,
-        requesterId: isRequest ? (c.requesterId ?? actor.user.id) : null,
-        requestedAt: isRequest ? (c.requestedAt ?? todayInSaoPaulo()) : null,
         externalRef: c.externalRef,
       });
       await setCardAssignees(tx, newId, c.assignees);
@@ -158,18 +147,14 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
       if (c.projectId !== before.projectId) need(actor, "kanban.create", c.projectId);
       const moving = c.status !== before.status;
       if (moving) need(actor, "kanban.move", c.projectId, own);
-      await checkPeople(tx, c.assignees, c.requesterId);
+      await checkPeople(tx, c.assignees);
       await checkLabels(tx, c.labelIds);
-      const isRequest = c.type === "request";
       const after: CardSnapshot = {
         title: c.title,
         description: c.description,
-        type: c.type,
         priority: c.priority,
         dueDate: c.dueDate,
         projectId: c.projectId,
-        requesterId: isRequest ? (c.requesterId ?? before.requesterId ?? actor.user.id) : null,
-        requestedAt: isRequest ? (c.requestedAt ?? before.requestedAt ?? todayInSaoPaulo()) : null,
         externalRef: c.externalRef,
         assignees: c.assignees,
         labelIds: c.labelIds,
@@ -178,13 +163,10 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
       const relocate = moving || c.projectId !== before.projectId;
       const ok = await updateCardFields(tx, id, {
         projectId: after.projectId,
-        type: c.type,
         title: after.title,
         description: after.description,
         priority: after.priority,
         dueDate: after.dueDate,
-        requesterId: after.requesterId,
-        requestedAt: after.requestedAt,
         externalRef: after.externalRef,
         ...(relocate ? { status: c.status, position: await endOfColumn(tx, c.projectId, c.status) } : {}),
         ...(moving ? { completedAt: c.status === "done" ? new Date() : null } : {}),

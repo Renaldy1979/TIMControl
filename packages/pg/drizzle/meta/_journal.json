@@ -50,6 +50,13 @@
       "when": 1795108213312,
       "tag": "0006_remove_meetings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795114428286,
+      "tag": "0007_card_sem_tipo",
+      "breakpoints": true
     }
   ]
 }

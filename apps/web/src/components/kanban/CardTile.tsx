@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarClock, Lock, Users } from "lucide-react";
 import { DUE_LABELS, dueState, formatDateBR } from "@timcontrol/domain";
-import { PRIORITY_LABELS, TYPE_LABELS, type Priority } from "@timcontrol/shared";
+import { PRIORITY_LABELS, type Priority } from "@timcontrol/shared";
 import type { CardSummary } from "@timcontrol/pg";
 import { cx } from "../ui/cx";
 
@@ -69,7 +69,7 @@ export function DueLabel({ dueDate, status, today }: { dueDate: string | null; s
   );
 }
 
-/** Card do quadro: selo do projeto, tipo, título, etiquetas, prazo, prioridade e responsáveis. */
+/** Card do quadro: selo do projeto, título, etiquetas, prazo, prioridade e responsáveis. */
 export function CardTile({ card, today, showProject, dragging }: { card: CardSummary & { canMove?: boolean }; today: string; showProject: boolean; dragging?: boolean }) {
   return (
     <div className={cx("flex flex-col gap-2.5 rounded-md bg-sf p-4 shadow-sm ring-1 ring-bd/60", dragging && "rotate-2 shadow-lg ring-br")}>
@@ -79,7 +79,6 @@ export function CardTile({ card, today, showProject, dragging }: { card: CardSum
             {card.projectName}
           </span>
         )}
-        {card.type === "request" && <span className="rounded-pill bg-br-soft px-2 py-0.5 text-[11px] font-semibold text-br-2">{TYPE_LABELS.request}</span>}
         <PriorityBadge p={card.priority} />
         {card.canMove === false && (
           <span className="ml-auto text-ink3" title="Você não pode mover este card">
@@ -105,7 +104,6 @@ export function CardTile({ card, today, showProject, dragging }: { card: CardSum
           <Assignees list={card.assignees} />
         </span>
       </div>
-      {card.type === "request" && card.requesterName && <p className="text-xs text-ink3">Pedido por {card.requesterName}</p>}
     </div>
   );
 }

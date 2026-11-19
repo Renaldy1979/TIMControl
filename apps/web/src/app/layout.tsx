@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: { default: "TIMControl", template: "%s · TIMControl" },
-  description: "Kanban de atividades e solicitações do time de Dev Ops.",
+  description: "Kanban de atividades do time de Dev Ops.",
   applicationName: "TIMControl",
   manifest: "/manifest.webmanifest",
 };

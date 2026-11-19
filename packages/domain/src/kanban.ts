@@ -79,12 +79,9 @@ export function dropPosition(column: { id: string; position: number }[], movingI
 export interface CardSnapshot {
   title: string;
   description: string;
-  type: string;
   priority: Priority;
   dueDate: string | null;
   projectId: string;
-  requesterId: string | null;
-  requestedAt: string | null;
   externalRef: string;
   assignees: string[];
   labelIds: string[];
@@ -93,12 +90,9 @@ export interface CardSnapshot {
 const FIELD_LABELS: Record<keyof CardSnapshot, string> = {
   title: "título",
   description: "descrição",
-  type: "tipo",
   priority: "prioridade",
   dueDate: "prazo",
   projectId: "projeto",
-  requesterId: "solicitante",
-  requestedAt: "data do pedido",
   externalRef: "referência externa",
   assignees: "responsáveis",
   labelIds: "etiquetas",

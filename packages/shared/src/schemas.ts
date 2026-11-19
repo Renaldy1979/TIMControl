@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CARD_STATUSES, CARD_TYPES, PRIORITIES, SCOPES } from "./enums";
+import { CARD_STATUSES, PRIORITIES, SCOPES } from "./enums";
 
 /** Validações compartilhadas entre telas, Server Actions e testes. Mensagens em pt-BR. */
 export const emailSchema = z.string().trim().toLowerCase().email("Informe um e-mail válido.").max(160);
@@ -47,21 +47,15 @@ export const assigneeRefSchema = z.string().regex(/^[ug]:[0-9a-f-]{36}$/i, "Resp
 export const cardSchema = z
   .object({
     projectId: uuid.refine(Boolean, "Escolha o projeto."),
-    type: z.enum(CARD_TYPES, { message: "Escolha o tipo." }),
     title: z.string().trim().min(3, "Informe o título (ao menos 3 letras).").max(160, "Título longo demais."),
     description: z.string().trim().max(10000, "Descrição longa demais.").default(""),
     status: z.enum(CARD_STATUSES).default("todo"),
     priority: z.enum(PRIORITIES, { message: "Escolha a prioridade." }).default("normal"),
     dueDate: optionalDate,
-    assignees: z.array(assigneeRefSchema).max(30).default([]),
+    /** Todo card é para alguém: ao menos uma pessoa ou um grupo. */
+    assignees: z.array(assigneeRefSchema).min(1, "Escolha ao menos um responsável (pessoa ou grupo).").max(30),
     labelIds: z.array(uuid).max(20).default([]),
-    /** Só para Solicitação. */
-    requesterId: uuid.nullable().default(null),
-    requestedAt: optionalDate,
     externalRef: z.string().trim().max(120, "Referência longa demais.").default(""),
-  })
-  .superRefine((c, ctx) => {
-    if (c.type === "request" && c.assignees.length === 0) ctx.addIssue({ code: "custom", path: ["assignees"], message: "Uma solicitação precisa de ao menos um responsável." });
   });
 export type CardInput = z.infer<typeof cardSchema>;
 
