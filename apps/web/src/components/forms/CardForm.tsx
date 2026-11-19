@@ -15,7 +15,6 @@ export interface CardFormData {
   people: Opt[];
   groups: Opt[];
   labels: (Opt & { color: string })[];
-  meetings: (Opt & { projectId: string })[];
   meId: string;
   today: string;
   /** Pode escolher a coluna ao criar/editar (permissão de mover). */
@@ -36,7 +35,6 @@ export interface CardValues {
   requesterId?: string | null;
   requestedAt?: string | null;
   externalRef?: string;
-  meetingId?: string | null;
 }
 
 const area = "w-full rounded-md border border-bd bg-sf px-3 py-2 text-[15px] text-ink placeholder:text-ink3 focus:border-br focus:outline-none";
@@ -49,7 +47,6 @@ function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string,
   const [projectId, setProjectId] = useState(v.projeto ?? c.projectId ?? d.projects[0]?.id ?? "");
   const assignees = new Set(list(v.responsaveis) ?? c.assignees ?? []);
   const labelIds = new Set(list(v.etiquetas) ?? c.labelIds ?? []);
-  const meetings = d.meetings.filter((m) => m.projectId === projectId);
   return (
     <>
       <fieldset>
@@ -160,14 +157,6 @@ function Fields({ d, c, v }: { d: CardFormData; c: CardValues; v: Record<string,
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Select label="Reunião ou WarRoom de origem" name="reuniao" defaultValue={v.reuniao ?? c.meetingId ?? ""}>
-          <option value="">Nenhuma</option>
-          {meetings.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </Select>
         <Field label="Referência externa (opcional)" name="referencia" maxLength={120} defaultValue={v.referencia ?? c.externalRef} placeholder="Nº do bug ou chamado em outra ferramenta" />
       </div>
     </>

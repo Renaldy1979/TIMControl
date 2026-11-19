@@ -1,18 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Home, LayoutGrid, ListChecks, Send, Settings, UserRound } from "lucide-react";
+import { Home, LayoutGrid, ListChecks, Send, Settings, UserRound } from "lucide-react";
 import { cx } from "../ui/cx";
 
 export interface NavItem {
   href: string;
   label: string;
-  icon: "home" | "settings" | "user" | "board" | "mine" | "asked" | "meetings";
+  icon: "home" | "settings" | "user" | "board" | "mine" | "asked";
   /** Some na barra inferior do celular (vai para o menu "Mais" da Conta). */
   desktopOnly?: boolean;
 }
 
-const icons = { home: Home, settings: Settings, user: UserRound, board: LayoutGrid, mine: ListChecks, asked: Send, meetings: CalendarDays };
+const icons = { home: Home, settings: Settings, user: UserRound, board: LayoutGrid, mine: ListChecks, asked: Send };
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 

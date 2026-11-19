@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, exists, gte, ilike, inArray, lt, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import type { CardStatus, CardType, Priority } from "@timcontrol/shared";
 import type { Tx } from "./client";
-import { cardAssignees, cardHistory, cardLabels, cards, groupMembers, groups, labels, meetings, projects, users } from "./schema";
+import { cardAssignees, cardHistory, cardLabels, cards, groupMembers, groups, labels, projects, users } from "./schema";
 
 /**
  * Cards do Kanban (Lote 2). Tudo roda dentro de `withUser`: o RLS já recorta o que a pessoa vê e pode alterar.
@@ -35,7 +35,6 @@ export interface CardSummary {
   createdBy: string;
   requesterId: string | null;
   requesterName: string | null;
-  meetingId: string | null;
   updatedAt: Date;
   assignees: AssigneeRef[];
   labels: LabelRef[];
@@ -45,7 +44,6 @@ export interface CardDetail extends CardSummary {
   description: string;
   requestedAt: string | null;
   externalRef: string;
-  meetingTitle: string | null;
   createdByName: string;
   createdAt: Date;
   completedAt: Date | null;
@@ -63,7 +61,6 @@ export interface CardFilter {
   assignedTo?: string;
   /** Solicitações pedidas por esta pessoa. */
   requestedBy?: string;
-  meetingId?: string;
   /** Prazo: atrasados (antes de hoje e não concluídos) ou nos próximos 7 dias. */
   due?: { kind: "overdue" | "week"; today: string };
   q?: string;
@@ -84,7 +81,6 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
   if (f.type) where.push(eq(cards.type, f.type));
   if (f.status) where.push(eq(cards.status, f.status));
   if (f.priority) where.push(eq(cards.priority, f.priority));
-  if (f.meetingId) where.push(eq(cards.meetingId, f.meetingId));
   if (f.includeDone === false) where.push(ne(cards.status, "done"));
   if (f.labelId) where.push(exists(sql`(select 1 from ${cardLabels} cl where cl.card_id = ${cards.id} and cl.label_id = ${f.labelId})`));
   if (f.assignee) {
@@ -129,7 +125,6 @@ export async function listCards(tx: Tx, f: CardFilter = {}, order: "board" | "du
       createdBy: cards.createdBy,
       requesterId: cards.requesterId,
       requesterName: users.name,
-      meetingId: cards.meetingId,
       updatedAt: cards.updatedAt,
     })
     .from(cards)
@@ -189,8 +184,6 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
       requesterName: users.name,
       requestedAt: cards.requestedAt,
       externalRef: cards.externalRef,
-      meetingId: cards.meetingId,
-      meetingTitle: meetings.title,
       completedAt: cards.completedAt,
       createdAt: cards.createdAt,
       updatedAt: cards.updatedAt,
@@ -198,7 +191,6 @@ export async function getCard(tx: Tx, id: string): Promise<CardDetail | null> {
     .from(cards)
     .innerJoin(projects, eq(projects.id, cards.projectId))
     .leftJoin(users, eq(users.id, cards.requesterId))
-    .leftJoin(meetings, eq(meetings.id, cards.meetingId))
     .where(eq(cards.id, id));
   if (!row) return null;
   const [full] = await attach(tx, [row as Omit<CardDetail, "assignees" | "labels">]);
@@ -217,7 +209,6 @@ export interface CardWrite {
   requesterId: string | null;
   requestedAt: string | null;
   externalRef: string;
-  meetingId: string | null;
 }
 
 export async function insertCard(tx: Tx, createdBy: string, input: CardWrite): Promise<string> {

@@ -1,9 +1,8 @@
-import type { CardStatus, CardType, Feature, MeetingKind, Priority, Scope, UserState } from "./enums";
+import type { CardStatus, CardType, Feature, Priority, Scope, UserState } from "./enums";
 
 /** Textos da interface (pt-BR). Código e chaves ficam em inglês. */
 export const FEATURE_LABELS: Record<Feature, string> = {
   kanban: "Kanban (cards)",
-  meetings: "Reuniões e WarRooms",
   admin: "Administração",
 };
 
@@ -14,10 +13,6 @@ export const ACTION_LABELS: Record<string, string> = {
   "kanban.move": "Mover card entre colunas",
   "kanban.comment": "Comentar e anexar",
   "kanban.delete": "Excluir card",
-  "meetings.view": "Ver reuniões",
-  "meetings.create": "Registrar reunião",
-  "meetings.edit": "Editar reunião",
-  "meetings.delete": "Excluir reunião",
   "admin.users": "Gerenciar usuários e convites",
   "admin.profiles": "Gerenciar perfis e permissões",
   "admin.projects": "Criar e configurar projetos",
@@ -47,4 +42,3 @@ export const TYPE_LABELS: Record<CardType, string> = { task: "Tarefa", request: 
 
 export const PRIORITY_LABELS: Record<Priority, string> = { low: "Baixa", normal: "Normal", high: "Alta", urgent: "Urgente" };
 
-export const MEETING_KIND_LABELS: Record<MeetingKind, string> = { meeting: "Reunião", warroom: "WarRoom" };

@@ -3,7 +3,7 @@ import { STATUS_LABELS, TYPE_LABELS } from "@timcontrol/shared";
 import type { CardView } from "@/server/kanban";
 import { Assignees, DueLabel, PriorityBadge } from "./CardTile";
 
-/** Lista de cards (visão em lista, Minhas atividades, Pedi a outros, cards de uma reunião). */
+/** Lista de cards (visão em lista, Minhas atividades, Pedi a outros). */
 export function CardList({ cards, today, empty = "Nenhum card por aqui.", showProject = true }: { cards: CardView[]; today: string; empty?: string; showProject?: boolean }) {
   if (!cards.length) return <p className="rounded-lg bg-sf p-5 text-ink3 shadow-sm">{empty}</p>;
   return (

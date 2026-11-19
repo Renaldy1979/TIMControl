@@ -10,13 +10,13 @@ import {
   addCardHistory, cardHistoryOf, createLabel, deleteCard, getCard, insertCard, listCards, listLabels, setCardAssignees, setCardLabels, updateCardFields,
   type CardWrite,
 } from "./cards";
-import { getMeeting, insertMeeting, listMeetings, setMeetingParticipants, updateMeeting } from "./meetings";
+import { sql } from "drizzle-orm";
 
 const hasDb = await dbAvailable();
 
 const base = (projectId: string, over: Partial<CardWrite> = {}): CardWrite => ({
   projectId, type: "task", title: "Analisar lentidão", description: "", status: "todo", position: 1024, priority: "normal", dueDate: null,
-  requesterId: null, requestedAt: null, externalRef: "", meetingId: null, ...over,
+  requesterId: null, requestedAt: null, externalRef: "", ...over,
 });
 
 describe.skipIf(!hasDb)("Kanban + RLS (Lote 2)", () => {
@@ -133,19 +133,8 @@ describe.skipIf(!hasDb)("Kanban + RLS (Lote 2)", () => {
     expect(busca.map((c) => c.title)).toEqual(["Pedido à Accenture"]);
   });
 
-  it("reuniões: Membro registra e edita as suas; Visitante só vê as do projeto liberado", async () => {
-    const mid = await withUser(u.membro, async (tx) => {
-      const id = await insertMeeting(tx, u.membro, { projectId: p.tv, kind: "warroom", title: "WarRoom lentidão", heldOn: "2026-11-19", notes: "" });
-      await setMeetingParticipants(tx, id, [u.membro, u.membro2]);
-      return id;
-    }, db.app);
-    await withUser(u.membro, (tx) => insertCard(tx, u.membro, base(p.tv, { title: "Saída da WarRoom", meetingId: mid })), db.app);
-    const m = await withUser(u.visitante, (tx) => getMeeting(tx, mid), db.app);
-    expect(m?.participants).toHaveLength(2);
-    expect(m?.openCards).toBe(1);
-    expect(await withUser(u.fabrica, (tx) => listMeetings(tx), db.app)).toHaveLength(0);
-    // Participante conta como "sua"; o Gestor edita qualquer uma.
-    expect(await withUser(u.membro2, (tx) => updateMeeting(tx, mid, { projectId: p.tv, kind: "warroom", title: "WarRoom (editada)", heldOn: "2026-11-19", notes: "ok" }), db.app)).toBe(true);
-    expect(await withUser(u.visitante, (tx) => updateMeeting(tx, mid, { projectId: p.tv, kind: "warroom", title: "x", heldOn: "2026-11-19", notes: "" }), db.app)).toBe(false);
+  it("reuniões/WarRooms foram retiradas: sem tabelas e sem coluna no card", async () => {
+    const r = await withSistema((tx) => tx.execute(sql`select to_regclass('meetings') as m, to_regclass('meeting_participants') as mp, (select count(*) from information_schema.columns where table_name = 'cards' and column_name = 'meeting_id')::int as col, (select count(*) from profile_permissions where permission like 'meetings.%')::int as perms`), db.app);
+    expect(r[0]).toEqual({ m: null, mp: null, col: 0, perms: 0 });
   });
 });

@@ -20,9 +20,10 @@ Nas reuniões e WarRooms com as fábricas (Accenture, Engineering), o time pede 
 - Colunas fixas: A Fazer, Em andamento, Em revisão, Concluído.
 - Quadro por projeto e visão geral (projeto como selo do card). Visões "Minhas atividades" e "Pedi a outros", e uma lista ordenável.
 - Card: título, descrição, projeto, tipo (**Tarefa** ou **Solicitação**), responsáveis (pessoas e grupos, um ou mais), prazo, prioridade, etiquetas, anexos, comentários com menção, checklist, histórico.
-- Solicitação: solicitante, data do pedido, prazo combinado, reunião de origem e referência externa (opcionais).
-- **Reuniões e WarRooms**: registro simples (tipo, título, data, projeto, participantes), com os cards criados a partir dela e a página do que ficou pendente.
+- Solicitação: solicitante, data do pedido, prazo combinado e referência externa (opcionais).
 - Anexos no Appwrite Storage (bucket privado), sem link público, com cada download registrado.
+
+**Fora do escopo** (decisão do dono, 19/11/2026): cadastro de reuniões e WarRooms. O que sai delas vira card direto no quadro.
 
 ## Depois da v1
 Indicadores (v2) e controle de férias (v3).

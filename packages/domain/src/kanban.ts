@@ -86,7 +86,6 @@ export interface CardSnapshot {
   requesterId: string | null;
   requestedAt: string | null;
   externalRef: string;
-  meetingId: string | null;
   assignees: string[];
   labelIds: string[];
 }
@@ -101,7 +100,6 @@ const FIELD_LABELS: Record<keyof CardSnapshot, string> = {
   requesterId: "solicitante",
   requestedAt: "data do pedido",
   externalRef: "referência externa",
-  meetingId: "reunião de origem",
   assignees: "responsáveis",
   labelIds: "etiquetas",
 };

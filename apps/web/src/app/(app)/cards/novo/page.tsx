@@ -25,20 +25,17 @@ export default async function NewCardPage({ searchParams }: { searchParams: Prom
     );
   }
   const projectId = projects.some((p) => p.id === one(sp.projeto)) ? one(sp.projeto) : projects[0]!.id;
-  const d = await cardFormData(actor, ctx, projects, can(actor.viewer, "kanban.move", { projectId, own: true }));
-  const meetingId = d.meetings.some((m) => m.id === one(sp.reuniao)) ? one(sp.reuniao) : null;
-  const meeting = d.meetings.find((m) => m.id === meetingId);
+  const d = cardFormData(actor, ctx, projects, can(actor.viewer, "kanban.move", { projectId, own: true }));
   return (
     <>
-      <PageHeader title={one(sp.tipo) === "request" ? "Nova solicitação" : "Novo card"} subtitle={meeting ? `Saindo de: ${meeting.name}` : "Preencha o essencial; o resto pode ser ajustado depois."} />
+      <PageHeader title={one(sp.tipo) === "request" ? "Nova solicitação" : "Novo card"} subtitle="Preencha o essencial; o resto pode ser ajustado depois." />
       <Card className="max-w-3xl">
         <NewCardForm
           d={d}
           initial={{
-            projectId: meeting?.projectId ?? projectId,
-            type: one(sp.tipo) === "request" || meetingId ? "request" : "task",
-            meetingId,
-            assignees: one(sp.tipo) === "request" || meetingId ? [] : [`u:${actor.user.id}`],
+            projectId,
+            type: one(sp.tipo) === "request" ? "request" : "task",
+            assignees: one(sp.tipo) === "request" ? [] : [`u:${actor.user.id}`],
           }}
         />
       </Card>
