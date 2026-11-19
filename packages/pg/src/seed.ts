@@ -11,9 +11,9 @@ import * as schema from "./schema";
 
 /** Projetos e grupos com que o sistema começa (docs/01). O Gestor cadastra outros pela tela. */
 export const INITIAL_PROJECTS = [
-  { name: "TIM Vendas", code: "TV", tower: "producao", color: PROJECT_COLORS[0] },
-  { name: "WhatsApp CX", code: "WCX", tower: "producao", color: PROJECT_COLORS[3] },
-  { name: "Ecommerce", code: "ECOM", tower: "producao", color: PROJECT_COLORS[1] },
+  { name: "TIM Vendas", code: "TV", color: PROJECT_COLORS[0] },
+  { name: "WhatsApp CX", code: "WCX", color: PROJECT_COLORS[3] },
+  { name: "Ecommerce", code: "ECOM", color: PROJECT_COLORS[1] },
 ] as const;
 
 export const INITIAL_GROUPS = [

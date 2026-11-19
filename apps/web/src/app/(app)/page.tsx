@@ -1,5 +1,5 @@
 import { listProjects } from "@timcontrol/pg";
-import { profileFor, TOWER_LABELS } from "@timcontrol/shared";
+import { profileFor } from "@timcontrol/shared";
 import { Card, PageHeader, ProjectChip } from "@/components/ui/Card";
 import { asActor, requireActor } from "@/server/actor";
 
@@ -25,7 +25,6 @@ export default async function HomePage() {
                   <ProjectChip name={p.name} color={p.color} />
                   <span className="font-mono text-xs text-ink3">{p.code}</span>
                 </div>
-                <p className="text-sm text-ink2">Torre: {TOWER_LABELS[p.tower]}</p>
                 <p className="text-sm text-ink3">Seu perfil aqui: {profileFor(actor.viewer, p.id)?.name ?? "sem acesso"}</p>
               </Card>
             </li>

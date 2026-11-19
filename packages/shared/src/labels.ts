@@ -1,4 +1,4 @@
-import type { Feature, Scope, Tower, UserState } from "./enums";
+import type { Feature, Scope, UserState } from "./enums";
 
 /** Textos da interface (pt-BR). Código e chaves ficam em inglês. */
 export const FEATURE_LABELS: Record<Feature, string> = {
@@ -28,12 +28,6 @@ export const SCOPE_LABELS: Record<Scope | "none", string> = {
   all: "Todos",
   own: "Os seus e os que é responsável",
   none: "Não",
-};
-
-export const TOWER_LABELS: Record<Tower, string> = {
-  producao: "Produção",
-  sustentacao: "Sustentação",
-  ambas: "Produção e sustentação",
 };
 
 export const USER_STATE_LABELS: Record<UserState, string> = {

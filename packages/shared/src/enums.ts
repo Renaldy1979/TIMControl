@@ -25,8 +25,6 @@ export type SystemProfile = (typeof SYSTEM_PROFILES)[number];
 export const USER_STATES = ["invited", "active", "disabled"] as const;
 export type UserState = (typeof USER_STATES)[number];
 
-export const TOWERS = ["producao", "sustentacao", "ambas"] as const;
-export type Tower = (typeof TOWERS)[number];
 
 export const permissionKey = (feature: Feature, action: string) => `${feature}.${action}`;
 export type PermissionKey = `${Feature}.${string}`;
