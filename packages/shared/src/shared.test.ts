@@ -54,7 +54,7 @@ describe("permissões", () => {
 
 describe("projeto", () => {
   it("sigla vira maiúscula e valida", () => {
-    expect(projectSchema.parse({ name: "TIM Vendas", code: "tv", tower: "producao", color: "#7C5CFC" }).code).toBe("TV");
-    expect(projectSchema.safeParse({ name: "X", code: "t", tower: "producao", color: "#7C5CFC" }).success).toBe(false);
+    expect(projectSchema.parse({ name: "TIM Vendas", code: "tv", color: "#7C5CFC" }).code).toBe("TV");
+    expect(projectSchema.safeParse({ name: "X", code: "t", color: "#7C5CFC" }).success).toBe(false);
   });
 });

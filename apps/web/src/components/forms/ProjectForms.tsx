@@ -1,5 +1,5 @@
 "use client";
-import { PROJECT_COLORS, TOWER_LABELS, TOWERS } from "@timcontrol/shared";
+import { PROJECT_COLORS } from "@timcontrol/shared";
 import { createProjectAction, removeProjectMemberAction, setProjectMemberAction, updateProjectAction } from "@/server/actions/admin";
 import { ActionForm } from "../ui/ActionForm";
 import { Check, Field, Select } from "../ui/Field";
@@ -9,7 +9,6 @@ interface ProjectValues {
   id?: string;
   name?: string;
   code?: string;
-  tower?: string;
   color?: string;
   active?: boolean;
 }
@@ -21,13 +20,6 @@ function ProjectFields({ p, v }: { p: ProjectValues; v: Record<string, string> }
         <Field label="Nome" name="nome" required defaultValue={v.nome ?? p.name} />
         <Field label="Sigla" name="sigla" required maxLength={8} defaultValue={v.sigla ?? p.code} />
       </div>
-      <Select label="Torre" name="torre" defaultValue={v.torre ?? p.tower ?? "producao"}>
-        {TOWERS.map((t) => (
-          <option key={t} value={t}>
-            {TOWER_LABELS[t]}
-          </option>
-        ))}
-      </Select>
       <fieldset>
         <legend className="mb-2 text-sm font-semibold text-ink2">Cor do selo</legend>
         <div className="flex flex-wrap gap-2">

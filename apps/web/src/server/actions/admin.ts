@@ -180,7 +180,7 @@ export async function deleteProfileAction(_: FormState, form: FormData): Promise
 
 // ---------- projetos ----------
 
-const readProject = (form: FormData) => parseOr(projectSchema, { name: fd(form, "nome"), code: fd(form, "sigla"), tower: fd(form, "torre"), color: fd(form, "cor") });
+const readProject = (form: FormData) => parseOr(projectSchema, { name: fd(form, "nome"), code: fd(form, "sigla"), color: fd(form, "cor") });
 
 export async function createProjectAction(_: FormState, form: FormData): Promise<FormState> {
   return guarded("admin.projects", async (actor) => {

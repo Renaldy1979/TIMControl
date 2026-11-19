@@ -1,5 +1,4 @@
 import { listProfiles, listProjectMembers, listProjects, listUsers } from "@timcontrol/pg";
-import { TOWER_LABELS } from "@timcontrol/shared";
 import { Badge, Card, PageHeader, ProjectChip } from "@/components/ui/Card";
 import { AddMemberForm, CreateProjectForm, EditProjectForm, RemoveMemberForm } from "@/components/forms/ProjectForms";
 import { asActor } from "@/server/actor";
@@ -37,7 +36,6 @@ export default async function ProjectsPage() {
                         <span className="font-mono text-xs text-ink3">{p.code}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-ink3">{TOWER_LABELS[p.tower]}</span>
                         {!p.active && <Badge tone="danger">Inativo</Badge>}
                         <Badge>{pm.length} com acesso específico</Badge>
                       </div>

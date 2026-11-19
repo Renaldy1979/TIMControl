@@ -1,5 +1,4 @@
 import { and, asc, eq } from "drizzle-orm";
-import type { Tower } from "@timcontrol/shared";
 import type { Tx } from "./client";
 import { projectMembers, projects } from "./schema";
 
@@ -7,7 +6,6 @@ export interface ProjectRow {
   id: string;
   name: string;
   code: string;
-  tower: Tower;
   color: string;
   active: boolean;
 }
@@ -15,7 +13,7 @@ export interface ProjectRow {
 /** Só o que o RLS deixa a pessoa ver (Gestor vê todos; Visitante só os liberados). */
 export async function listProjects(tx: Tx): Promise<ProjectRow[]> {
   const rows = await tx.select().from(projects).orderBy(asc(projects.name));
-  return rows.map((p) => ({ id: p.id, name: p.name, code: p.code, tower: p.tower as Tower, color: p.color, active: p.active }));
+  return rows.map((p) => ({ id: p.id, name: p.name, code: p.code, color: p.color, active: p.active }));
 }
 
 export async function createProject(tx: Tx, input: Omit<ProjectRow, "id" | "active">): Promise<string> {

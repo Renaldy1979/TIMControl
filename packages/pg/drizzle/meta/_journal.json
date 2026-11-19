@@ -22,6 +22,13 @@
       "when": 1795099426967,
       "tag": "0002_grants_app",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795101028601,
+      "tag": "0003_remove_tower",
+      "breakpoints": true
     }
   ]
 }

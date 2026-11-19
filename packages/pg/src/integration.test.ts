@@ -82,7 +82,7 @@ describe.skipIf(!hasDb)("Postgres + RLS (Lote 1)", () => {
   });
 
   it("Membro não altera projetos nem perfis; Gestor altera", async () => {
-    await expect(withUser(ids.membro, (tx) => createProject(tx, { name: "Novo", code: "NV", tower: "ambas", color: "#7C5CFC" }), db.app)).rejects.toThrow();
+    await expect(withUser(ids.membro, (tx) => createProject(tx, { name: "Novo", code: "NV", color: "#7C5CFC" }), db.app)).rejects.toThrow();
     const membro = await withSistema((tx) => profileBySystemKey(tx, "membro"), db.app);
     await expect(withUser(ids.membro, (tx) => writeGrants(tx, membro!.id, { "admin.users": "all" }), db.app)).rejects.toThrow();
     await withUser(ids.membro, (tx) => writeGrants(tx, membro!.id, {}), db.app);
@@ -90,7 +90,7 @@ describe.skipIf(!hasDb)("Postgres + RLS (Lote 1)", () => {
     const after = await withSistema((tx) => profileBySystemKey(tx, "membro"), db.app);
     expect(Object.keys(after!.grants).length).toBeGreaterThan(0);
 
-    const id = await withUser(ids.gestor, (tx) => createProject(tx, { name: "Portal B2B", code: "B2B", tower: "sustentacao", color: "#0EA5E9" }), db.app);
+    const id = await withUser(ids.gestor, (tx) => createProject(tx, { name: "Portal B2B", code: "B2B", color: "#0EA5E9" }), db.app);
     expect(id).toMatch(/[0-9a-f-]{36}/);
   });
 

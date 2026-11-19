@@ -15,7 +15,7 @@ Postgres 16 + Drizzle (`packages/pg/src/schema.ts`). Migrações em `packages/pg
 | `profile_permissions` | profile_id, permission (`funcionalidade.ação`), scope (`all`/`own`) | linha ausente = não pode |
 | `users` | id, appwrite_user_id, name, email, state (invited/active/disabled), global_profile_id | login e senha ficam no Appwrite |
 | `invites` | id, user_id, token_hash, invited_by, expires_at, accepted_at | só o hash do token; vale 7 dias e uma vez |
-| `projects` | id, name, code (sigla), tower (producao/sustentacao/ambas), color, active | cadastráveis |
+| `projects` | id, name, code (sigla), color, active | cadastráveis |
 | `project_members` | project_id, user_id, profile_id | perfil da pessoa naquele projeto; é o que libera projetos ao Visitante |
 | `groups` | id, name, description, active | agrupam pessoas como responsável |
 | `group_members` | group_id, user_id | |

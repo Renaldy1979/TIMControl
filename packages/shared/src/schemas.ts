@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SCOPES, TOWERS } from "./enums";
+import { SCOPES } from "./enums";
 
 /** Validações compartilhadas entre telas, Server Actions e testes. Mensagens em pt-BR. */
 export const emailSchema = z.string().trim().toLowerCase().email("Informe um e-mail válido.").max(160);
@@ -13,7 +13,6 @@ export const projectSchema = z.object({
     .trim()
     .toUpperCase()
     .regex(/^[A-Z0-9]{2,8}$/, "A sigla deve ter de 2 a 8 letras ou números."),
-  tower: z.enum(TOWERS, { message: "Escolha a torre." }),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor inválida."),
 });
 

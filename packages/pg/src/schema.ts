@@ -87,7 +87,6 @@ export const projects = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     code: text("code").notNull(),
-    tower: text("tower").notNull(),
     color: text("color").notNull(),
     active: boolean("active").notNull().default(true),
     createdAt: createdAt(),
@@ -95,7 +94,6 @@ export const projects = pgTable(
   (t) => [
     uniqueIndex("projects_name_uq").on(sql`lower(${t.name})`),
     uniqueIndex("projects_code_uq").on(t.code),
-    check("projects_tower_ck", sql`${t.tower} in ('producao','sustentacao','ambas')`),
   ],
 );
 
