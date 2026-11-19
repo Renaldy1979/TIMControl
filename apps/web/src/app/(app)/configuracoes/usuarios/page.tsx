@@ -44,7 +44,8 @@ export default async function UsersPage() {
                   </summary>
                   <div className="mt-4 grid gap-4 border-t border-bd pt-4 sm:grid-cols-2">
                     <EditUserForm id={u.id} name={u.name} profileId={u.globalProfileId} profiles={opts} />
-                    <div className="flex flex-col gap-3">
+                    {/* sm:pt-[26px] = altura do rótulo + espaço: o botão fica na linha do campo Nome. */}
+                    <div className="flex flex-col gap-3 sm:pt-[26px]">
                       {u.state === "invited" && (
                         <>
                           {invites.get(u.id) && <p className="text-sm text-ink3">Convite vale até {fmt.format(invites.get(u.id)!)}.</p>}
