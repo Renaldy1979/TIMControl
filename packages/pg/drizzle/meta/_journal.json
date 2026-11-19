@@ -43,6 +43,13 @@
       "when": 1795102544283,
       "tag": "0005_kanban_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795108213312,
+      "tag": "0006_remove_meetings",
+      "breakpoints": true
     }
   ]
 }

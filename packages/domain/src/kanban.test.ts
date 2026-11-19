@@ -58,7 +58,7 @@ describe("ordem na coluna", () => {
 describe("histórico", () => {
   const base: CardSnapshot = {
     title: "A", description: "", type: "task", priority: "normal", dueDate: null, projectId: "p", requesterId: null, requestedAt: null,
-    externalRef: "", meetingId: null, assignees: ["u:1", "g:2"], labelIds: [],
+    externalRef: "", assignees: ["u:1", "g:2"], labelIds: [],
   };
   it("lista só o que mudou e ignora a ordem dos responsáveis", () => {
     expect(changedFields(base, { ...base, assignees: ["g:2", "u:1"] })).toEqual([]);

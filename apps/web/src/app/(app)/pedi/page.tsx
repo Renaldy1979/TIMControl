@@ -23,7 +23,7 @@ export default async function RequestedPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader
         title="Pedi a outros"
-        subtitle="Solicitações em que você é o solicitante, para acompanhar o que foi pedido em reuniões e WarRooms."
+        subtitle="Solicitações em que você é o solicitante, para acompanhar o que você pediu."
         action={
           creatableProjects(actor, ctx).length > 0 && (
             <Link href="/cards/novo?tipo=request" className={buttonClass("primary")}>

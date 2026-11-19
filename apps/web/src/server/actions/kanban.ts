@@ -3,12 +3,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
-  addCardHistory, audit, columnPositions, createLabel, deleteCard, deleteLabel, deleteMeeting, getCard, getMeeting, groupIdsOf, insertCard, insertMeeting,
-  listGroups, listLabels, listUsers, renumberColumn, setCardAssignees, setCardLabels, setMeetingParticipants, updateCardFields, updateLabel, updateMeeting,
+  addCardHistory, audit, columnPositions, createLabel, deleteCard, deleteLabel, getCard, groupIdsOf, insertCard,
+  listGroups, listLabels, listUsers, renumberColumn, setCardAssignees, setCardLabels, updateCardFields, updateLabel,
   type CardDetail, type Tx,
 } from "@timcontrol/pg";
 import { changedFields, dropPosition, isOwnCard, todayInSaoPaulo, type CardSnapshot } from "@timcontrol/domain";
-import { can, CARD_STATUSES, cardSchema, labelSchema, meetingSchema, type CardStatus, type PermissionKey } from "@timcontrol/shared";
+import { can, CARD_STATUSES, cardSchema, labelSchema, type CardStatus, type PermissionKey } from "@timcontrol/shared";
 import { asActor, requireActor, requirePermission, type Actor } from "../actor";
 import { ForbiddenError, isUniqueViolation, UserError } from "../errors";
 import { fd, firstIssue, type FormState } from "../form";
@@ -42,7 +42,6 @@ function readCard(form: FormData) {
     requesterId: fd(form, "solicitante") || null,
     requestedAt: fd(form, "pedidoEm"),
     externalRef: fd(form, "referencia"),
-    meetingId: fd(form, "reuniao") || null,
   };
   const p = cardSchema.safeParse(raw);
   if (!p.success) throw new UserError(firstIssue(p.error));
@@ -67,15 +66,10 @@ async function checkPeople(tx: Tx, assignees: string[], requesterId: string | nu
   if (requesterId && !users.has(requesterId)) throw new UserError("Escolha um solicitante válido.");
 }
 
-async function checkLabelsAndMeeting(tx: Tx, labelIds: string[], meetingId: string | null, projectId: string) {
+async function checkLabels(tx: Tx, labelIds: string[]) {
   if (labelIds.length) {
     const known = new Set((await listLabels(tx)).map((l) => l.id));
     if (labelIds.some((l) => !known.has(l))) throw new UserError("Uma das etiquetas não existe mais.");
-  }
-  if (meetingId) {
-    const m = await getMeeting(tx, meetingId);
-    if (!m) throw new UserError("Reunião de origem não encontrada.");
-    if (m.projectId !== projectId) throw new UserError("A reunião de origem é de outro projeto.");
   }
 }
 
@@ -94,7 +88,6 @@ const snapshot = (c: CardDetail): CardSnapshot => ({
   requesterId: c.requesterId,
   requestedAt: c.requestedAt,
   externalRef: c.externalRef,
-  meetingId: c.meetingId,
   assignees: c.assignees.map((a) => `${a.kind === "user" ? "u" : "g"}:${a.id}`),
   labelIds: c.labels.map((l) => l.id),
 });
@@ -106,13 +99,12 @@ async function ownership(tx: Tx, actor: Actor, card: CardDetail) {
 
 const need = (actor: Actor, key: PermissionKey, projectId: string, own = false) => requirePermission(actor, key, { projectId, own });
 
-function revalidateKanban(cardId?: string, meetingId?: string | null) {
+function revalidateKanban(cardId?: string) {
   revalidatePath("/quadro");
   revalidatePath("/minhas");
   revalidatePath("/pedi");
   revalidatePath("/");
   if (cardId) revalidatePath(`/cards/${cardId}`);
-  if (meetingId) revalidatePath(`/reunioes/${meetingId}`);
 }
 
 // ---------- cards ----------
@@ -126,7 +118,7 @@ export async function createCardAction(_: FormState, form: FormData): Promise<Fo
     if (c.status !== "todo") need(actor, "kanban.move", c.projectId, true);
     id = await asActor(actor, async (tx) => {
       await checkPeople(tx, c.assignees, c.requesterId);
-      await checkLabelsAndMeeting(tx, c.labelIds, c.meetingId, c.projectId);
+      await checkLabels(tx, c.labelIds);
       const isRequest = c.type === "request";
       const newId = await insertCard(tx, actor.user.id, {
         projectId: c.projectId,
@@ -140,14 +132,13 @@ export async function createCardAction(_: FormState, form: FormData): Promise<Fo
         requesterId: isRequest ? (c.requesterId ?? actor.user.id) : null,
         requestedAt: isRequest ? (c.requestedAt ?? todayInSaoPaulo()) : null,
         externalRef: c.externalRef,
-        meetingId: c.meetingId,
       });
       await setCardAssignees(tx, newId, c.assignees);
       await setCardLabels(tx, newId, c.labelIds);
       await addCardHistory(tx, newId, actor.user.id, "created", { status: c.status });
       return newId;
     });
-    revalidateKanban(id, c.meetingId);
+    revalidateKanban(id);
   } catch (e) {
     return { ...failure(e, "card.create"), values: echo(form) };
   }
@@ -159,7 +150,7 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
   try {
     const id = uuid.parse(fd(form, "id"));
     const c = readCard(form);
-    const meetingId = await asActor(actor, async (tx) => {
+    await asActor(actor, async (tx) => {
       const before = await getCard(tx, id);
       if (!before) throw new UserError("Card não encontrado.");
       const own = await ownership(tx, actor, before);
@@ -168,7 +159,7 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
       const moving = c.status !== before.status;
       if (moving) need(actor, "kanban.move", c.projectId, own);
       await checkPeople(tx, c.assignees, c.requesterId);
-      await checkLabelsAndMeeting(tx, c.labelIds, c.meetingId, c.projectId);
+      await checkLabels(tx, c.labelIds);
       const isRequest = c.type === "request";
       const after: CardSnapshot = {
         title: c.title,
@@ -180,7 +171,6 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
         requesterId: isRequest ? (c.requesterId ?? before.requesterId ?? actor.user.id) : null,
         requestedAt: isRequest ? (c.requestedAt ?? before.requestedAt ?? todayInSaoPaulo()) : null,
         externalRef: c.externalRef,
-        meetingId: c.meetingId,
         assignees: c.assignees,
         labelIds: c.labelIds,
       };
@@ -196,7 +186,6 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
         requesterId: after.requesterId,
         requestedAt: after.requestedAt,
         externalRef: after.externalRef,
-        meetingId: after.meetingId,
         ...(relocate ? { status: c.status, position: await endOfColumn(tx, c.projectId, c.status) } : {}),
         ...(moving ? { completedAt: c.status === "done" ? new Date() : null } : {}),
       });
@@ -205,9 +194,8 @@ export async function updateCardAction(_: FormState, form: FormData): Promise<Fo
       await setCardLabels(tx, id, c.labelIds);
       if (fields.length) await addCardHistory(tx, id, actor.user.id, "edited", { fields });
       if (moving) await addCardHistory(tx, id, actor.user.id, "moved", { from: before.status, to: c.status });
-      return before.meetingId ?? c.meetingId;
     });
-    revalidateKanban(id, meetingId);
+    revalidateKanban(id);
     return { ok: "Card salvo." };
   } catch (e) {
     return { ...failure(e, "card.update"), values: echo(form) };
@@ -270,91 +258,6 @@ export async function deleteCardAction(_: FormState, form: FormData): Promise<Fo
     return failure(e, "card.delete");
   }
   redirect(back);
-}
-
-// ---------- reuniões e WarRooms ----------
-
-function readMeeting(form: FormData) {
-  const p = meetingSchema.safeParse({
-    projectId: fd(form, "projeto"),
-    kind: fd(form, "tipo"),
-    title: fd(form, "titulo"),
-    heldOn: fd(form, "data"),
-    notes: fd(form, "anotacoes"),
-    participantIds: form.getAll("participantes").map(String),
-  });
-  if (!p.success) throw new UserError(firstIssue(p.error));
-  return p.data;
-}
-
-async function checkParticipants(tx: Tx, ids: string[]) {
-  const active = new Set((await listUsers(tx)).filter((u) => u.state === "active").map((u) => u.id));
-  if (ids.some((i) => !active.has(i))) throw new UserError("Um dos participantes não está mais disponível.");
-}
-
-export async function createMeetingAction(_: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireActor();
-  let id = "";
-  try {
-    const m = readMeeting(form);
-    need(actor, "meetings.create", m.projectId);
-    id = await asActor(actor, async (tx) => {
-      await checkParticipants(tx, m.participantIds);
-      const newId = await insertMeeting(tx, actor.user.id, { projectId: m.projectId, kind: m.kind, title: m.title, heldOn: m.heldOn, notes: m.notes });
-      await setMeetingParticipants(tx, newId, m.participantIds);
-      return newId;
-    });
-    revalidatePath("/reunioes");
-  } catch (e) {
-    return { ...failure(e, "meeting.create"), values: echo(form) };
-  }
-  redirect(`/reunioes/${id}`);
-}
-
-export async function updateMeetingAction(_: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireActor();
-  try {
-    const id = uuid.parse(fd(form, "id"));
-    const m = readMeeting(form);
-    await asActor(actor, async (tx) => {
-      const before = await getMeeting(tx, id);
-      if (!before) throw new UserError("Reunião não encontrada.");
-      const own = before.createdBy === actor.user.id || before.participants.some((p) => p.id === actor.user.id);
-      need(actor, "meetings.edit", before.projectId, own);
-      if (m.projectId !== before.projectId) {
-        if (before.totalCards > 0) throw new UserError("Esta reunião já tem cards; ela não pode mudar de projeto.");
-        need(actor, "meetings.create", m.projectId);
-      }
-      await checkParticipants(tx, m.participantIds);
-      if (!(await updateMeeting(tx, id, { projectId: m.projectId, kind: m.kind, title: m.title, heldOn: m.heldOn, notes: m.notes }))) throw new ForbiddenError("meetings.edit");
-      await setMeetingParticipants(tx, id, m.participantIds);
-    });
-    revalidatePath("/reunioes");
-    revalidatePath(`/reunioes/${id}`);
-    return { ok: "Reunião salva." };
-  } catch (e) {
-    return { ...failure(e, "meeting.update"), values: echo(form) };
-  }
-}
-
-export async function deleteMeetingAction(_: FormState, form: FormData): Promise<FormState> {
-  const actor = await requireActor();
-  try {
-    const id = uuid.parse(fd(form, "id"));
-    await asActor(actor, async (tx) => {
-      const m = await getMeeting(tx, id);
-      if (!m) throw new UserError("Reunião não encontrada.");
-      const own = m.createdBy === actor.user.id || m.participants.some((p) => p.id === actor.user.id);
-      need(actor, "meetings.delete", m.projectId, own);
-      if (!(await deleteMeeting(tx, id))) throw new ForbiddenError("meetings.delete");
-      await audit(tx, actor.user.id, "meeting.deleted", "meeting", id, { projectId: m.projectId, cards: m.totalCards });
-    });
-    revalidatePath("/reunioes");
-    revalidateKanban();
-  } catch (e) {
-    return failure(e, "meeting.delete");
-  }
-  redirect("/reunioes");
 }
 
 // ---------- etiquetas (Configurações) ----------

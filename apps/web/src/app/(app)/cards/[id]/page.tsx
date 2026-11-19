@@ -30,7 +30,7 @@ export default async function CardPage({ params, searchParams }: { params: Promi
   const canDelete = can(actor.viewer, "kanban.delete", opts);
   // Ao editar, o card pode ir para outro projeto em que a pessoa também cria cards.
   const projects = ctx.projects.filter((p) => p.id === card.projectId || can(actor.viewer, "kanban.create", { projectId: p.id }));
-  const d = canEdit ? await cardFormData(actor, ctx, projects, canMove) : null;
+  const d = canEdit ? cardFormData(actor, ctx, projects, canMove) : null;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -76,16 +76,6 @@ export default async function CardPage({ params, searchParams }: { params: Promi
               </dd>
             </div>
           )}
-          {card.meetingId && (
-            <div>
-              <dt className="font-semibold text-ink3">Origem</dt>
-              <dd className="mt-1">
-                <Link href={`/reunioes/${card.meetingId}`} className="font-semibold text-br-2 hover:underline">
-                  {card.meetingTitle}
-                </Link>
-              </dd>
-            </div>
-          )}
           {card.externalRef && (
             <div>
               <dt className="font-semibold text-ink3">Referência externa</dt>
@@ -128,7 +118,6 @@ export default async function CardPage({ params, searchParams }: { params: Promi
                 requesterId: card.requesterId,
                 requestedAt: card.requestedAt,
                 externalRef: card.externalRef,
-                meetingId: card.meetingId,
               }}
             />
           </div>

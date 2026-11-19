@@ -159,40 +159,6 @@ export const auditLog = pgTable(
 
 const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
 
-/** Reunião ou WarRoom: registro simples; os cards criados nela apontam para cá. */
-export const meetings = pgTable(
-  "meetings",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
-    kind: text("kind").notNull(),
-    title: text("title").notNull(),
-    heldOn: date("held_on").notNull(),
-    notes: text("notes").notNull().default(""),
-    createdBy: uuid("created_by")
-      .notNull()
-      .references(() => users.id),
-    createdAt: createdAt(),
-    updatedAt: updatedAt(),
-  },
-  (t) => [index("meetings_project_ix").on(t.projectId, t.heldOn), check("meetings_kind_ck", sql`${t.kind} in ('meeting','warroom')`)],
-);
-
-export const meetingParticipants = pgTable(
-  "meeting_participants",
-  {
-    meetingId: uuid("meeting_id")
-      .notNull()
-      .references(() => meetings.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-  },
-  (t) => [primaryKey({ columns: [t.meetingId, t.userId] })],
-);
-
 /** Card do quadro: Tarefa do time ou Solicitação. Colunas fixas em `status`; ordem na coluna em `position`. */
 export const cards = pgTable(
   "cards",
@@ -216,14 +182,12 @@ export const cards = pgTable(
     requestedAt: date("requested_at"),
     /** Número de bug/chamado em outra ferramenta, só como texto. */
     externalRef: text("external_ref").notNull().default(""),
-    meetingId: uuid("meeting_id").references(() => meetings.id, { onDelete: "set null" }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
     index("cards_board_ix").on(t.projectId, t.status, t.position),
-    index("cards_meeting_ix").on(t.meetingId),
     index("cards_requester_ix").on(t.requesterId),
     check("cards_type_ck", sql`${t.type} in ('task','request')`),
     check("cards_status_ck", sql`${t.status} in ('todo','doing','review','done')`),

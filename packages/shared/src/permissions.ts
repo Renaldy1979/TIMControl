@@ -41,13 +41,9 @@ export const DEFAULT_GRANTS: Record<SystemProfile, Grants> = {
     "kanban.edit": "own",
     "kanban.move": "own",
     "kanban.comment": "all",
-    "meetings.view": "all",
-    "meetings.create": "all",
-    "meetings.edit": "own",
   },
   visitante: {
     "kanban.view": "all",
-    "meetings.view": "all",
   },
 };
 

@@ -29,6 +29,6 @@ describe("matriz", () => {
   });
 
   it("sem ver o kanban, as outras ações do kanban caem", () => {
-    expect(normalizeGrants({ "kanban.edit": "all", "meetings.view": "all" })).toEqual({ "meetings.view": "all" });
+    expect(normalizeGrants({ "kanban.edit": "all", "admin.groups": "all" })).toEqual({ "admin.groups": "all" });
   });
 });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CARD_STATUSES, CARD_TYPES, MEETING_KINDS, PRIORITIES, SCOPES } from "./enums";
+import { CARD_STATUSES, CARD_TYPES, PRIORITIES, SCOPES } from "./enums";
 
 /** Validações compartilhadas entre telas, Server Actions e testes. Mensagens em pt-BR. */
 export const emailSchema = z.string().trim().toLowerCase().email("Informe um e-mail válido.").max(160);
@@ -59,22 +59,11 @@ export const cardSchema = z
     requesterId: uuid.nullable().default(null),
     requestedAt: optionalDate,
     externalRef: z.string().trim().max(120, "Referência longa demais.").default(""),
-    meetingId: uuid.nullable().default(null),
   })
   .superRefine((c, ctx) => {
     if (c.type === "request" && c.assignees.length === 0) ctx.addIssue({ code: "custom", path: ["assignees"], message: "Uma solicitação precisa de ao menos um responsável." });
   });
 export type CardInput = z.infer<typeof cardSchema>;
-
-export const meetingSchema = z.object({
-  projectId: uuid,
-  kind: z.enum(MEETING_KINDS, { message: "Escolha o tipo." }),
-  title: z.string().trim().min(3, "Informe o título (ao menos 3 letras).").max(160),
-  heldOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data."),
-  notes: z.string().trim().max(10000, "Anotações longas demais.").default(""),
-  participantIds: z.array(uuid).max(60).default([]),
-});
-export type MeetingInput = z.infer<typeof meetingSchema>;
 
 export const labelSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome da etiqueta.").max(30, "Nome longo demais."),

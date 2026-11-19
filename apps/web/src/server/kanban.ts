@@ -1,6 +1,6 @@
 import "server-only";
-import { groupIdsOf, listCards, listGroups, listLabels, listMeetings, listProjects, listUsers, type CardFilter, type CardSummary, type LabelRef, type ProjectRow } from "@timcontrol/pg";
-import { formatDateBR, isOwnCard, todayInSaoPaulo } from "@timcontrol/domain";
+import { groupIdsOf, listCards, listGroups, listLabels, listProjects, listUsers, type CardFilter, type CardSummary, type LabelRef, type ProjectRow } from "@timcontrol/pg";
+import { isOwnCard, todayInSaoPaulo } from "@timcontrol/domain";
 import { can, CARD_TYPES, PRIORITIES, type CardType, type Priority } from "@timcontrol/shared";
 import { asActor, type Actor } from "./actor";
 
@@ -100,17 +100,14 @@ export async function loadCards(actor: Actor, ctx: KanbanContext, filter: CardFi
 
 /** Projetos em que a pessoa pode criar card (para o botão "Novo card"). */
 export const creatableProjects = (actor: Actor, ctx: KanbanContext) => ctx.projects.filter((p) => can(actor.viewer, "kanban.create", { projectId: p.id }));
-export const meetingProjects = (actor: Actor, ctx: KanbanContext) => ctx.projects.filter((p) => can(actor.viewer, "meetings.create", { projectId: p.id }));
 
-/** Dados do formulário de card: projetos permitidos, pessoas, grupos, etiquetas e reuniões dos projetos. */
-export async function cardFormData(actor: Actor, ctx: KanbanContext, projects: ProjectRow[], canMove: boolean) {
-  const meetings = await asActor(actor, (tx) => listMeetings(tx, { projectIds: projects.map((p) => p.id) }));
+/** Dados do formulário de card: projetos permitidos, pessoas, grupos e etiquetas. */
+export function cardFormData(actor: Actor, ctx: KanbanContext, projects: ProjectRow[], canMove: boolean) {
   return {
     projects: projects.map((p) => ({ id: p.id, name: p.name })),
     people: ctx.people,
     groups: ctx.groups,
     labels: ctx.labels,
-    meetings: meetings.map((m) => ({ id: m.id, name: `${formatDateBR(m.heldOn)} · ${m.title}`, projectId: m.projectId })),
     meId: actor.user.id,
     today: ctx.today,
     canMove,

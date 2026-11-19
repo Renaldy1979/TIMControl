@@ -25,6 +25,5 @@ export function applyMatrixChanges(current: Grants, changes: MatrixChange[]): Gr
 export function normalizeGrants(g: Grants): Grants {
   const out: Grants = { ...g };
   if (!out["kanban.view"]) for (const k of Object.keys(out)) if (k.startsWith("kanban.")) delete out[k as PermissionKey];
-  if (!out["meetings.view"]) for (const k of Object.keys(out)) if (k.startsWith("meetings.")) delete out[k as PermissionKey];
   return out;
 }

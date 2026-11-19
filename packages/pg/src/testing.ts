@@ -33,7 +33,7 @@ export async function freshDb(): Promise<TestDbs> {
   await runMigrations();
   const a = postgres(adminUrl(), { max: 2, onnotice: () => {} });
   const b = postgres(appUrl(), { max: 4, prepare: false, onnotice: () => {} });
-  await a`truncate card_history, card_labels, card_assignees, cards, meeting_participants, meetings, labels, audit_log, group_members, groups, project_members, invites, users, projects, profile_permissions, profiles restart identity cascade`;
+  await a`truncate card_history, card_labels, card_assignees, cards, labels, audit_log, group_members, groups, project_members, invites, users, projects, profile_permissions, profiles restart identity cascade`;
   return {
     admin: drizzle(a, { schema }),
     app: drizzle(b, { schema }),

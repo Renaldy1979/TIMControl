@@ -13,12 +13,11 @@
 **Precisa do dono:** criar os serviços no EasyPanel e configurar o Appwrite (passo a passo no `docs/09-deploy.md`).
 
 ## Lote 2 — Kanban essencial
-**Você testa:** registrar uma WarRoom, criar a partir dela uma solicitação para a Accenture, arrastar cards entre as colunas (no computador e no celular), conferir "Minhas atividades" e "Pedi a outros", filtrar atrasados e ver o histórico do card. Roteiro: `docs/lotes/L2-roteiro.md`.
+**Você testa:** criar uma solicitação para a Accenture, arrastar cards entre as colunas (no computador e no celular), conferir "Minhas atividades" e "Pedi a outros", filtrar atrasados e ver o histórico do card. Roteiro: `docs/lotes/L2-roteiro.md`.
 - Cards dos dois tipos (Tarefa e Solicitação), com vários responsáveis (pessoas e grupos), prazo, prioridade, etiquetas e referência externa.
 - Quadro por projeto e visão geral, com arrastar e soltar (mouse, toque e teclado) e "Mover para" na tela do card.
 - Lista ordenável (prazo, prioridade, atualizados) e filtros por projeto, tipo, responsável, prioridade, etiqueta, prazo e busca.
 - "Minhas atividades" (sou responsável, direto ou por grupo) e "Pedi a outros" (solicitações em que sou o solicitante).
-- Reuniões e WarRooms com participantes, anotações e os cards que saíram delas (pendentes e concluídos).
 - Histórico do card (criou, moveu, alterou) e Configurações → Etiquetas.
 - Início com os projetos, cards em aberto, atrasados e o que está com a pessoa.
 

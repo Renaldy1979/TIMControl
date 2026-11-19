@@ -9,7 +9,6 @@ export function AppShell({ userName, profileName, showAdmin, children }: { userN
     { href: "/quadro", label: "Quadro", icon: "board" },
     { href: "/minhas", label: "Minhas", icon: "mine" },
     { href: "/pedi", label: "Pedi", icon: "asked" },
-    { href: "/reunioes", label: "Reuniões", icon: "meetings" },
     ...(showAdmin ? [{ href: "/configuracoes", label: "Configurações", icon: "settings", desktopOnly: true } as const] : []),
     { href: "/conta", label: "Conta", icon: "user" },
   ];
