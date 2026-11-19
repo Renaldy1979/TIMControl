@@ -29,3 +29,4 @@ test-results/
 
 # configuração local do Claude
 .claude/settings.local.json
+*.tsbuildinfo
